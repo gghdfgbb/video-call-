@@ -5,8 +5,18 @@ const path = require('path');
 const axios = require('axios');
 const { Dropbox } = require('dropbox');
 const multer = require('multer');
+const http = require('http');
+const socketIo = require('socket.io');
 
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 
 // ==================== DROPBOX CONFIGURATION ====================
@@ -21,31 +31,33 @@ const IS_RENDER = process.env.RENDER === 'true' || process.env.RENDER_EXTERNAL_U
 const RENDER_DOMAIN = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
 
 function getShortDomainName() {
-    if (!IS_RENDER) return 'face-detector-local';
+    if (!IS_RENDER) return 'face-animator-local';
     
     let domain = RENDER_DOMAIN.replace(/^https?:\/\//, '');
     domain = domain.replace(/\.render\.com$/, '');
     domain = domain.replace(/\.onrender\.com$/, '');
     domain = domain.split('.')[0];
     
-    return domain || 'face-detector';
+    return domain || 'face-animator';
 }
 
 const SHORT_DOMAIN = getShortDomainName();
-console.log(`🚀 Advanced Face & Image Mapper Domain: ${SHORT_DOMAIN}`);
+console.log(`🎭 Advanced Face Animator Domain: ${SHORT_DOMAIN}`);
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static('public'));
 app.use('/uploads', express.static('uploads'));
+app.use('/generated', express.static('generated'));
 
 // Configure multer for image uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const uploadDir = 'uploads';
         if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir);
+            fs.mkdirSync(uploadDir, { recursive: true });
         }
         cb(null, uploadDir);
     },
@@ -58,7 +70,7 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 10 * 1024 * 1024 // 10MB limit
+        fileSize: 20 * 1024 * 1024 // 20MB limit
     },
     fileFilter: (req, file, cb) => {
         const allowedTypes = /jpeg|jpg|png|gif|webp/;
@@ -73,94 +85,293 @@ const upload = multer({
     }
 });
 
+// Create necessary directories
+const directories = ['uploads', 'generated', 'temp'];
+directories.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+});
+
 // Global variables
 let dbx = null;
 let isDropboxInitialized = false;
 
-// Face detection session storage
+// Face animation session storage
 let faceSessions = new Map();
 let sessionCounter = 1;
 let uploadedImages = new Map();
+let animationSessions = new Map();
 
-// ==================== DROPBOX FUNCTIONS ====================
-async function initializeDropbox() {
-    try {
-        if (isDropboxInitialized && dbx) return dbx;
+// ==================== FACE ANIMATION ENGINE ====================
 
-        console.log('🔄 Initializing Dropbox for session storage...');
+class FaceAnimationEngine {
+    constructor() {
+        this.animations = new Map();
+        this.frameCounter = 0;
+    }
+
+    // Generate transformation data for face reenactment
+    generateFaceTransform(sourceLandmarks, targetLandmarks) {
+        if (!sourceLandmarks || !targetLandmarks) {
+            return this.getDefaultTransform();
+        }
+
+        try {
+            // Calculate head rotation
+            const headRotation = this.calculateHeadRotation(sourceLandmarks);
+            
+            // Calculate mouth movement
+            const mouthMovement = this.calculateMouthMovement(sourceLandmarks);
+            
+            // Calculate eye movements
+            const eyeMovements = this.calculateEyeMovements(sourceLandmarks);
+            
+            // Calculate facial expression
+            const expression = this.calculateFacialExpression(sourceLandmarks);
+            
+            return {
+                head: {
+                    rotationX: headRotation.x,
+                    rotationY: headRotation.y,
+                    rotationZ: headRotation.z,
+                    positionX: headRotation.positionX || 0,
+                    positionY: headRotation.positionY || 0
+                },
+                mouth: {
+                    openness: mouthMovement.openness,
+                    smile: mouthMovement.smile,
+                    shape: mouthMovement.shape
+                },
+                eyes: {
+                    left: {
+                        openness: eyeMovements.left.openness,
+                        positionX: eyeMovements.left.positionX,
+                        positionY: eyeMovements.left.positionY
+                    },
+                    right: {
+                        openness: eyeMovements.right.openness,
+                        positionX: eyeMovements.right.positionX,
+                        positionY: eyeMovements.right.positionY
+                    },
+                    blink: eyeMovements.blink
+                },
+                expression: expression,
+                timestamp: Date.now(),
+                frameId: this.frameCounter++
+            };
+        } catch (error) {
+            console.error('Error generating face transform:', error);
+            return this.getDefaultTransform();
+        }
+    }
+
+    calculateHeadRotation(landmarks) {
+        // Simplified head rotation calculation based on key facial points
+        const nose = landmarks[1] || [0, 0, 0];
+        const leftEye = landmarks[33] || [0, 0, 0];
+        const rightEye = landmarks[263] || [0, 0, 0];
+        const chin = landmarks[152] || [0, 0, 0];
         
-        const accessToken = await getDropboxAccessToken();
-        if (!accessToken) {
-            console.log('❌ Failed to get Dropbox access token');
-            return null;
+        // Calculate rotation angles (simplified)
+        const eyeCenterX = (leftEye[0] + rightEye[0]) / 2;
+        const rotationY = (nose[0] - eyeCenterX) * 2; // Horizontal rotation
+        const rotationX = (nose[1] - chin[1]) * 0.5; // Vertical rotation
+        
+        return {
+            x: Math.max(-15, Math.min(15, rotationX)),
+            y: Math.max(-20, Math.min(20, rotationY)),
+            z: 0,
+            positionX: rotationY * 0.5,
+            positionY: rotationX * 0.3
+        };
+    }
+
+    calculateMouthMovement(landmarks) {
+        const mouthTop = landmarks[13] || [0, 0, 0];
+        const mouthBottom = landmarks[14] || [0, 0, 0];
+        const mouthLeft = landmarks[61] || [0, 0, 0];
+        const mouthRight = landmarks[291] || [0, 0, 0];
+        
+        const mouthHeight = Math.abs(mouthBottom[1] - mouthTop[1]);
+        const mouthWidth = Math.abs(mouthRight[0] - mouthLeft[0]);
+        
+        // Calculate mouth openness (normalized)
+        const openness = Math.min(1, mouthHeight / (mouthWidth * 0.8));
+        
+        // Calculate smile intensity
+        const smileLeft = landmarks[61] && landmarks[91] ? Math.abs(landmarks[61][1] - landmarks[91][1]) : 0;
+        const smileRight = landmarks[291] && landmarks[321] ? Math.abs(landmarks[291][1] - landmarks[321][1]) : 0;
+        const smile = Math.min(1, (smileLeft + smileRight) / 20);
+        
+        return {
+            openness: Math.max(0, Math.min(1, openness)),
+            smile: Math.max(0, Math.min(1, smile)),
+            shape: openness > 0.3 ? 'open' : smile > 0.4 ? 'smile' : 'neutral'
+        };
+    }
+
+    calculateEyeMovements(landmarks) {
+        // Left eye points
+        const leftEyeTop = landmarks[159] || [0, 0, 0];
+        const leftEyeBottom = landmarks[145] || [0, 0, 0];
+        const leftEyeLeft = landmarks[33] || [0, 0, 0];
+        const leftEyeRight = landmarks[133] || [0, 0, 0];
+        
+        // Right eye points
+        const rightEyeTop = landmarks[386] || [0, 0, 0];
+        const rightEyeBottom = landmarks[374] || [0, 0, 0];
+        const rightEyeLeft = landmarks[362] || [0, 0, 0];
+        const rightEyeRight = landmarks[263] || [0, 0, 0];
+        
+        // Calculate eye openness
+        const leftOpenness = Math.abs(leftEyeBottom[1] - leftEyeTop[1]);
+        const rightOpenness = Math.abs(rightEyeBottom[1] - rightEyeTop[1]);
+        
+        // Calculate eye positions
+        const leftPositionX = ((leftEyeLeft[0] + leftEyeRight[0]) / 2) - leftEyeLeft[0];
+        const leftPositionY = ((leftEyeTop[1] + leftEyeBottom[1]) / 2) - leftEyeTop[1];
+        
+        const rightPositionX = ((rightEyeLeft[0] + rightEyeRight[0]) / 2) - rightEyeLeft[0];
+        const rightPositionY = ((rightEyeTop[1] + rightEyeBottom[1]) / 2) - rightEyeTop[1];
+        
+        // Detect blink
+        const blink = (leftOpenness < 2 && rightOpenness < 2) ? true : false;
+        
+        return {
+            left: {
+                openness: Math.max(0, Math.min(1, leftOpenness / 10)),
+                positionX: Math.max(-1, Math.min(1, leftPositionX * 2)),
+                positionY: Math.max(-1, Math.min(1, leftPositionY * 2))
+            },
+            right: {
+                openness: Math.max(0, Math.min(1, rightOpenness / 10)),
+                positionX: Math.max(-1, Math.min(1, rightPositionX * 2)),
+                positionY: Math.max(-1, Math.min(1, rightPositionY * 2))
+            },
+            blink: blink
+        };
+    }
+
+    calculateFacialExpression(landmarks) {
+        const mouthMovement = this.calculateMouthMovement(landmarks);
+        const eyeMovements = this.calculateEyeMovements(landmarks);
+        
+        if (mouthMovement.openness > 0.6) {
+            return 'surprised';
+        } else if (mouthMovement.smile > 0.5) {
+            return 'happy';
+        } else if (mouthMovement.smile < 0.2 && eyeMovements.blink) {
+            return 'neutral';
+        } else if (mouthMovement.openness < 0.1) {
+            return 'neutral';
+        } else {
+            return 'talking';
+        }
+    }
+
+    getDefaultTransform() {
+        return {
+            head: { rotationX: 0, rotationY: 0, rotationZ: 0, positionX: 0, positionY: 0 },
+            mouth: { openness: 0, smile: 0, shape: 'neutral' },
+            eyes: {
+                left: { openness: 1, positionX: 0, positionY: 0 },
+                right: { openness: 1, positionX: 0, positionY: 0 },
+                blink: false
+            },
+            expression: 'neutral',
+            timestamp: Date.now(),
+            frameId: this.frameCounter++
+        };
+    }
+
+    // Generate CSS transform for the animated image
+    generateCSSTransform(transformData) {
+        const head = transformData.head;
+        
+        return {
+            transform: `
+                translate(${head.positionX}px, ${head.positionY}px)
+                rotateX(${head.rotationX}deg)
+                rotateY(${head.rotationY}deg)
+                rotateZ(${head.rotationZ}deg)
+            `,
+            filter: `
+                brightness(${transformData.expression === 'happy' ? '1.1' : '1'})
+                contrast(${transformData.expression === 'surprised' ? '1.05' : '1'})
+            `,
+            clipPath: this.generateMouthClipPath(transformData.mouth)
+        };
+    }
+
+    generateMouthClipPath(mouthData) {
+        if (mouthData.openness < 0.1) {
+            return 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)';
         }
         
-        dbx = new Dropbox({ 
-            accessToken: accessToken,
-            clientId: DROPBOX_CONFIG.APP_KEY
-        });
+        const openness = mouthData.openness * 30;
+        const smile = mouthData.smile * 10;
         
-        await dbx.usersGetCurrentAccount();
-        console.log('✅ Dropbox initialized successfully');
-        isDropboxInitialized = true;
-        return dbx;
-        
-    } catch (error) {
-        console.error('❌ Dropbox initialization failed:', error.message);
-        return null;
+        return `
+            polygon(
+                0% 0%, 100% 0%, 100% 100%, 0% 100%,
+                40% ${70 - openness + smile}%,
+                60% ${70 - openness - smile}%,
+                40% ${70 - openness + smile}%
+            )
+        `;
     }
 }
 
-async function getDropboxAccessToken() {
-    try {
-        const response = await axios.post(
-            'https://api.dropbox.com/oauth2/token',
-            new URLSearchParams({
-                grant_type: 'refresh_token',
-                refresh_token: DROPBOX_CONFIG.REFRESH_TOKEN,
-                client_id: DROPBOX_CONFIG.APP_KEY,
-                client_secret: DROPBOX_CONFIG.APP_SECRET
-            }),
-            {
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                timeout: 10000
-            }
-        );
+// Initialize face animation engine
+const animationEngine = new FaceAnimationEngine();
 
-        return response.data.access_token;
-    } catch (error) {
-        console.error('❌ Dropbox token error:', error.message);
-        return null;
-    }
-}
+// ==================== SOCKET.IO FOR REAL-TIME ANIMATION ====================
 
-// ==================== AUTO-PING SYSTEM ====================
-async function selfPing() {
-    if (!IS_RENDER) return;
+io.on('connection', (socket) => {
+    console.log(`🔗 Client connected: ${socket.id}`);
     
-    try {
-        const pingUrl = `${RENDER_DOMAIN}/ping`;
-        const response = await axios.get(pingUrl, { timeout: 5000 });
-        
-        console.log(`💓 Self-ping successful: ${response.data.status}`);
-    } catch (error) {
-        console.warn(`⚠️ Self-ping failed: ${error.message}`);
-    }
-}
-
-function startAutoPing() {
-    if (!IS_RENDER) {
-        console.log('🖥️  Running locally - auto-ping disabled');
-        return;
-    }
-
-    console.log('🔄 Starting auto-ping system (every 5 minutes)');
+    socket.on('start-animation', (data) => {
+        const { sessionId, imageId } = data;
+        animationSessions.set(socket.id, { sessionId, imageId });
+        console.log(`🎬 Animation started for session: ${sessionId}`);
+    });
     
-    setTimeout(selfPing, 10000);
-    setInterval(selfPing, 5 * 60 * 1000);
-}
+    socket.on('face-landmarks', (data) => {
+        const session = animationSessions.get(socket.id);
+        if (session) {
+            // Process face landmarks and generate animation data
+            const transformData = animationEngine.generateFaceTransform(data.landmarks);
+            const cssTransform = animationEngine.generateCSSTransform(transformData);
+            
+            // Send animation data back to client
+            socket.emit('animation-update', {
+                transform: cssTransform,
+                expression: transformData.expression,
+                timestamp: Date.now()
+            });
+            
+            // Broadcast to other clients in the same session if needed
+            socket.to(session.sessionId).emit('animation-update', {
+                transform: cssTransform,
+                expression: transformData.expression,
+                timestamp: Date.now()
+            });
+        }
+    });
+    
+    socket.on('stop-animation', () => {
+        animationSessions.delete(socket.id);
+        console.log(`🛑 Animation stopped for: ${socket.id}`);
+    });
+    
+    socket.on('disconnect', () => {
+        animationSessions.delete(socket.id);
+        console.log(`🔌 Client disconnected: ${socket.id}`);
+    });
+});
 
-// ==================== ENHANCED FACE & IMAGE MAPPING ROUTES ====================
+// ==================== ROUTES ====================
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -208,6 +419,74 @@ app.post('/upload-face', upload.single('faceImage'), (req, res) => {
     }
 });
 
+// Start animation session
+app.post('/start-animation-session', (req, res) => {
+    try {
+        const { imageId } = req.body;
+        const sessionId = `anim_${String(sessionCounter++).padStart(3, '0')}`;
+        
+        const sessionData = {
+            sessionId: sessionId,
+            startTime: Date.now(),
+            lastActivity: Date.now(),
+            imageId: imageId,
+            status: 'animating',
+            transforms: []
+        };
+        
+        faceSessions.set(sessionId, sessionData);
+        
+        console.log(`🎬 Animation session started: ${sessionId} with image ${imageId}`);
+        
+        res.json({
+            success: true,
+            sessionId: sessionId,
+            imageId: imageId,
+            message: 'Face animation session started',
+            timestamp: sessionData.startTime
+        });
+        
+    } catch (error) {
+        console.error('Animation session start error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Get animation data
+app.post('/generate-animation', (req, res) => {
+    try {
+        const { landmarks, imageId } = req.body;
+        
+        if (!landmarks) {
+            return res.status(400).json({
+                success: false,
+                error: 'Face landmarks are required'
+            });
+        }
+
+        const transformData = animationEngine.generateFaceTransform(landmarks);
+        const cssTransform = animationEngine.generateCSSTransform(transformData);
+        
+        res.json({
+            success: true,
+            transform: cssTransform,
+            expression: transformData.expression,
+            detailedData: transformData,
+            timestamp: Date.now()
+        });
+        
+    } catch (error) {
+        console.error('Animation generation error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // Get uploaded images
 app.get('/uploaded-images', (req, res) => {
     const images = Array.from(uploadedImages.values()).map(img => ({
@@ -223,321 +502,79 @@ app.get('/uploaded-images', (req, res) => {
     });
 });
 
-// Delete uploaded image
-app.delete('/image/:imageId', (req, res) => {
-    try {
-        const { imageId } = req.params;
-        const image = uploadedImages.get(imageId);
-        
-        if (!image) {
-            return res.status(404).json({
-                success: false,
-                error: 'Image not found'
-            });
-        }
-
-        // Delete file from filesystem
-        const filePath = path.join(__dirname, 'uploads', image.filename);
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-        }
-        
-        uploadedImages.delete(imageId);
-        
-        console.log(`🗑️ Image deleted: ${image.originalName}`);
-        
-        res.json({
-            success: true,
-            message: 'Image deleted successfully'
-        });
-        
-    } catch (error) {
-        console.error('Image delete error:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// Enhanced session start with image mapping
-app.post('/start-session', (req, res) => {
-    try {
-        const { imageId } = req.body;
-        const sessionId = `session_${String(sessionCounter++).padStart(3, '0')}`;
-        
-        const sessionData = {
-            sessionId: sessionId,
-            startTime: Date.now(),
-            lastActivity: Date.now(),
-            expressions: [],
-            speechEvents: [],
-            mappedImageId: imageId || null,
-            status: 'active'
-        };
-        
-        faceSessions.set(sessionId, sessionData);
-        
-        console.log(`🎭 New Face Mapping session: ${sessionId}${imageId ? ` with image ${imageId}` : ''}`);
-        
-        res.json({
-            success: true,
-            sessionId: sessionId,
-            mappedImageId: imageId,
-            message: 'Face mapping session started',
-            timestamp: sessionData.startTime
-        });
-        
-    } catch (error) {
-        console.error('Session start error:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// Enhanced expression detection with image mapping data
-app.post('/detect-expression', (req, res) => {
-    try {
-        const { sessionId, expression, confidence, landmarks, isSpeaking, mouthOpenness, headPosition, faceTransform } = req.body;
-        
-        if (!sessionId || !expression) {
-            return res.status(400).json({
-                success: false,
-                error: 'sessionId and expression are required'
-            });
-        }
-
-        const session = faceSessions.get(sessionId);
-        if (!session) {
-            return res.status(404).json({
-                success: false,
-                error: 'Session not found'
-            });
-        }
-
-        const detectionTime = Date.now();
-        
-        const expressionData = {
-            expression: expression,
-            confidence: confidence || 0,
-            timestamp: detectionTime,
-            landmarks: landmarks || null,
-            isSpeaking: isSpeaking || false,
-            mouthOpenness: mouthOpenness || 0,
-            headPosition: headPosition || 'center',
-            faceTransform: faceTransform || null
-        };
-        
-        session.expressions.push(expressionData);
-        
-        if (isSpeaking) {
-            session.speechEvents.push({
-                timestamp: detectionTime,
-                mouthOpenness: mouthOpenness,
-                duration: 0
-            });
-        }
-        
-        session.lastActivity = detectionTime;
-        
-        res.json({
-            success: true,
-            expression: expression,
-            confidence: confidence,
-            isSpeaking: isSpeaking,
-            headPosition: headPosition,
-            faceTransform: faceTransform,
-            timestamp: detectionTime,
-            sessionId: sessionId
-        });
-        
-    } catch (error) {
-        console.error('Expression detection error:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// Get enhanced session data
-app.get('/session/:sessionId', (req, res) => {
-    try {
-        const { sessionId } = req.params;
-        const session = faceSessions.get(sessionId);
-        
-        if (!session) {
-            return res.status(404).json({
-                success: false,
-                error: 'Session not found'
-            });
-        }
-
-        const speechStats = {
-            totalEvents: session.speechEvents.length,
-            averageMouthOpenness: session.speechEvents.reduce((sum, event) => sum + event.mouthOpenness, 0) / session.speechEvents.length || 0,
-            lastSpeech: session.speechEvents[session.speechEvents.length - 1] || null
-        };
-
-        res.json({
-            success: true,
-            sessionId: sessionId,
-            startTime: session.startTime,
-            lastActivity: session.lastActivity,
-            totalExpressions: session.expressions.length,
-            mappedImageId: session.mappedImageId,
-            speechStats: speechStats,
-            expressions: session.expressions.slice(-5),
-            status: session.status
-        });
-        
-    } catch (error) {
-        console.error('Session fetch error:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// Enhanced session end
-app.post('/end-session', (req, res) => {
-    try {
-        const { sessionId } = req.body;
-        const session = faceSessions.get(sessionId);
-        
-        if (!session) {
-            return res.status(404).json({
-                success: false,
-                error: 'Session not found'
-            });
-        }
-
-        session.status = 'ended';
-        session.endTime = Date.now();
-        
-        const speechPercentage = session.expressions.length > 0 
-            ? (session.expressions.filter(e => e.isSpeaking).length / session.expressions.length * 100).toFixed(1)
-            : 0;
-            
-        console.log(`📊 Session ${sessionId} ended: ${session.expressions.length} expressions, ${speechPercentage}% speaking`);
-        
-        res.json({
-            success: true,
-            sessionId: sessionId,
-            totalExpressions: session.expressions.length,
-            speechPercentage: speechPercentage,
-            mappedImageId: session.mappedImageId,
-            startTime: session.startTime,
-            endTime: session.endTime,
-            duration: session.endTime - session.startTime
-        });
-        
-    } catch (error) {
-        console.error('Session end error:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// Fast ping endpoint
+// Ping endpoint
 app.get('/ping', (req, res) => {
     res.json({
         status: 'pong',
-        server: 'advanced-face-image-mapper',
+        server: 'advanced-face-animator',
         domain: SHORT_DOMAIN,
-        activeSessions: Array.from(faceSessions.values()).filter(s => s.status === 'active').length,
+        activeSessions: Array.from(faceSessions.values()).filter(s => s.status === 'animating').length,
+        activeConnections: io.engine.clientsCount,
         uploadedImages: uploadedImages.size,
         time: Date.now()
     });
 });
 
-// Enhanced server status
+// Server status
 app.get('/status', (req, res) => {
-    const activeSessions = Array.from(faceSessions.values()).filter(s => s.status === 'active').length;
-    const totalSpeechEvents = Array.from(faceSessions.values()).reduce((sum, session) => sum + session.speechEvents.length, 0);
+    const activeSessions = Array.from(faceSessions.values()).filter(s => s.status === 'animating').length;
     
     res.json({
-        status: '⚡ Advanced Face & Image Mapper Running',
+        status: '🎭 Advanced Face Animator Running',
         domain: SHORT_DOMAIN,
         activeSessions: activeSessions,
-        totalSessions: faceSessions.size,
+        activeConnections: io.engine.clientsCount,
         uploadedImages: uploadedImages.size,
-        totalSpeechEvents: totalSpeechEvents,
         render: IS_RENDER,
         serverUptime: Math.floor(process.uptime()),
+        features: [
+            'Real-time Face Reenactment',
+            'Image Animation',
+            'Live Expression Transfer',
+            'WebSocket Streaming'
+        ],
         timestamp: Date.now()
     });
 });
 
-// Faster cleanup (every 5 minutes)
-function cleanupInactiveSessions() {
-    const now = Date.now();
-    const inactiveThreshold = 15 * 60 * 1000;
+// ==================== AUTO-PING SYSTEM ====================
+async function selfPing() {
+    if (!IS_RENDER) return;
     
-    let cleaned = 0;
-    for (const [sessionId, session] of faceSessions.entries()) {
-        if (now - session.lastActivity > inactiveThreshold && session.status === 'active') {
-            session.status = 'timeout';
-            session.endTime = now;
-            cleaned++;
-        }
-    }
-    
-    if (cleaned > 0) {
-        console.log(`🧹 Cleaned ${cleaned} inactive sessions`);
+    try {
+        const pingUrl = `${RENDER_DOMAIN}/ping`;
+        const response = await axios.get(pingUrl, { timeout: 5000 });
+        console.log(`💓 Self-ping successful: ${response.data.status}`);
+    } catch (error) {
+        console.warn(`⚠️ Self-ping failed: ${error.message}`);
     }
 }
 
-// Cleanup old uploaded images (older than 24 hours)
-function cleanupOldImages() {
-    const now = Date.now();
-    const maxAge = 24 * 60 * 60 * 1000; // 24 hours
-    
-    let cleaned = 0;
-    for (const [imageId, image] of uploadedImages.entries()) {
-        if (now - image.uploadTime > maxAge) {
-            const filePath = path.join(__dirname, 'uploads', image.filename);
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-            }
-            uploadedImages.delete(imageId);
-            cleaned++;
-        }
+function startAutoPing() {
+    if (!IS_RENDER) {
+        console.log('🖥️  Running locally - auto-ping disabled');
+        return;
     }
-    
-    if (cleaned > 0) {
-        console.log(`🧹 Cleaned ${cleaned} old uploaded images`);
-    }
-}
 
-setInterval(cleanupInactiveSessions, 5 * 60 * 1000);
-setInterval(cleanupOldImages, 60 * 60 * 1000); // Cleanup every hour
+    console.log('🔄 Starting auto-ping system (every 5 minutes)');
+    setTimeout(selfPing, 10000);
+    setInterval(selfPing, 5 * 60 * 1000);
+}
 
 // ==================== SERVER STARTUP ====================
 
-app.listen(PORT, '0.0.0.0', async () => {
-    console.log(`⚡ Advanced Face & Image Mapper running on port ${PORT}`);
+server.listen(PORT, '0.0.0.0', async () => {
+    console.log(`🎭 Advanced Face Animator running on port ${PORT}`);
     console.log(`🌐 Domain: ${SHORT_DOMAIN}`);
     console.log(`🏠 Render: ${IS_RENDER}`);
-    console.log(`🎭 Face Detection: Enhanced with Image Mapping`);
-    console.log(`🖼️ Image Upload: Enabled with facial movement mapping`);
-    
-    // Create uploads directory if it doesn't exist
-    if (!fs.existsSync('uploads')) {
-        fs.mkdirSync('uploads');
-    }
-    
-    initializeDropbox().then(() => {
-        console.log('✅ Dropbox ready for enhanced sessions');
-    });
+    console.log(`🔗 WebSocket: Enabled for real-time animation`);
+    console.log(`🎬 Face Reenactment: ACTIVE`);
+    console.log(`🖼️ Image Animation: READY`);
     
     startAutoPing();
     
-    console.log(`✅ Server initialized - FACE MAPPING & IMAGE UPLOAD READY`);
+    console.log(`✅ Server initialized - FACE REENACTMENT SYSTEM READY`);
     console.log(`🔗 Access at: ${RENDER_DOMAIN}`);
 });
+
+module.exports = app;
