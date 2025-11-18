@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phistar Face Detector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .camera-section, .detection-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #fff;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #video {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #da190b;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .detection-display {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .expression {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .expression-text {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: capitalize;
+        }
+
+        .confidence {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+
+        .status {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .logs {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: monospace;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            opacity: 0.7;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 Phistar Face Detector</h1>
+            <p>Real-time facial expression and movement detection</p>
+        </div>
+
+        <div class="main-content">
+            <div class="camera-section">
+                <h2 class="section-title">📹 Camera Feed</h2>
+                <div class="video-container">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="canvas" class="canvas-overlay"></canvas>
+                </div>
+                <div class="controls">
+                    <button id="startBtn" class="btn btn-primary">Start Detection</button>
+                    <button id="stopBtn" class="btn btn-danger" disabled>Stop Detection</button>
+                </div>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Loading face detection model...</p>
+                </div>
+            </div>
+
+            <div class="detection-section">
+                <h2 class="section-title">🔍 Detection Results</h2>
+                <div class="detection-display">
+                    <div class="expression" id="expressionEmoji">😐</div>
+                    <div class="expression-text" id="expressionText">Neutral</div>
+                    <div class="confidence" id="confidenceText">Confidence: 0%</div>
+                    <div class="status" id="statusText">Ready to start detection</div>
+                    
+                    <div class="logs">
+                        <h3>Activity Log</h3>
+                        <div id="logContainer"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Phistar Face Detection System | Real-time AI-powered expression recognition</p>
+        </div>
+    </div>
+
+    <!-- Include FaceAPI.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.1/dist/face-landmarks-detection.min.js"></script>
+
+    <script>
+        // Global variables
+        let video = document.getElementById('video');
+        let canvas = document.getElementById('canvas');
+        let ctx = canvas.getContext('2d');
+        let model = null;
+        let isDetecting = false;
+        let detectionInterval = null;
+        let currentSessionId = null;
+
+        // DOM elements
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const loading = document.getElementById('loading');
+        const expressionEmoji = document.getElementById('expressionEmoji');
+        const expressionText = document.getElementById('expressionText');
+        const confidenceText = document.getElementById('confidenceText');
+        const statusText = document.getElementById('statusText');
+        const logContainer = document.getElementById('logContainer');
+
+        // Expression to emoji mapping
+        const expressionMap = {
+            'neutral': '😐',
+            'happy': '😊',
+            'sad': '😢',
+            'angry': '😠',
+            'fearful': '😨',
+            'disgusted': '🤢',
+            'surprised': '😲',
+            'blink': '😑',
+            'leftTurn': '👈',
+            'rightTurn': '👉',
+            'up': '👆',
+            'down': '👇'
+        };
+
+        // Initialize camera
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: 640, 
+                        height: 480,
+                        facingMode: 'user'
+                    } 
+                });
+                video.srcObject = stream;
+                
+                // Set canvas size to match video
+                video.addEventListener('loadedmetadata', () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                });
+                
+                log('Camera initialized successfully');
+                return true;
+            } catch (error) {
+                log('Error accessing camera: ' + error.message, 'error');
+                return false;
+            }
+        }
+
+        // Load face detection model
+        async function loadModel() {
+            try {
+                loading.style.display = 'block';
+                statusText.textContent = 'Loading face detection model...';
+                
+                // Using Face Landmarks Detection model
+                model = await faceLandmarksDetection.load(
+                    faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
+                    { maxFaces: 1 }
+                );
+                
+                loading.style.display = 'none';
+                statusText.textContent = 'Model loaded successfully';
+                log('Face detection model loaded');
+                return true;
+            } catch (error) {
+                loading.style.display = 'none';
+                log('Error loading model: ' + error.message, 'error');
+                statusText.textContent = 'Failed to load model';
+                return false;
+            }
+        }
+
+        // Start face detection session
+        async function startDetection() {
+            try {
+                // Start session on server
+                const response = await fetch('/start-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentSessionId = data.sessionId;
+                    isDetecting = true;
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    statusText.textContent = 'Detection active - Looking for faces...';
+                    log('Face detection session started: ' + currentSessionId);
+                    
+                    // Start detection loop
+                    detectionInterval = setInterval(detectFaces, 100);
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                log('Error starting session: ' + error.message, 'error');
+            }
+        }
+
+        // Stop face detection
+        async function stopDetection() {
+            isDetecting = false;
+            clearInterval(detectionInterval);
+            
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            statusText.textContent = 'Detection stopped';
+            
+            // End session on server
+            if (currentSessionId) {
+                try {
+                    await fetch('/end-session', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ sessionId: currentSessionId })
+                    });
+                    log('Session ended: ' + currentSessionId);
+                } catch (error) {
+                    log('Error ending session: ' + error.message, 'error');
+                }
+                currentSessionId = null;
+            }
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            expressionEmoji.textContent = '😐';
+            expressionText.textContent = 'Neutral';
+            confidenceText.textContent = 'Confidence: 0%';
+        }
+
+        // Main face detection function
+        async function detectFaces() {
+            if (!model || !isDetecting) return;
+            
+            try {
+                const predictions = await model.estimateFaces({
+                    input: video,
+                    returnTensors: false,
+                    flipHorizontal: false,
+                    predictIrises: true
+                });
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                if (predictions.length > 0) {
+                    const face = predictions[0];
+                    drawFace(face);
+                    
+                    // Analyze facial expressions and movements
+                    const analysis = analyzeFace(face);
+                    updateDisplay(analysis);
+                    sendDetectionToServer(analysis);
+                } else {
+                    statusText.textContent = 'No face detected';
+                    expressionEmoji.textContent = '❓';
+                    expressionText.textContent = 'No Face';
+                    confidenceText.textContent = 'Confidence: 0%';
+                }
+            } catch (error) {
+                log('Detection error: ' + error.message, 'error');
+            }
+        }
+
+        // Draw face landmarks on canvas
+        function drawFace(face) {
+            // Draw bounding box
+            const boundingBox = face.boundingBox;
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(
+                boundingBox.topLeft[0],
+                boundingBox.topLeft[1],
+                boundingBox.bottomRight[0] - boundingBox.topLeft[0],
+                boundingBox.bottomRight[1] - boundingBox.topLeft[1]
+            );
+            
+            // Draw landmarks
+            ctx.fillStyle = '#ff0000';
+            face.scaledMesh.forEach(point => {
+                ctx.fillRect(point[0], point[1], 2, 2);
+            });
+        }
+
+        // Analyze facial features for expressions and movements
+        function analyzeFace(face) {
+            const landmarks = face.scaledMesh;
+            
+            // Simple expression detection based on landmark positions
+            let expression = 'neutral';
+            let confidence = 0.8;
+            let additionalInfo = '';
+            
+            // Get key points (simplified)
+            const leftEye = landmarks[33];  // Approximate eye points
+            const rightEye = landmarks[263];
+            const noseTip = landmarks[1];
+            const mouthLeft = landmarks[61];
+            const mouthRight = landmarks[291];
+            const mouthCenter = landmarks[13];
+            
+            // Detect blinking (simplified - check eye openness)
+            const leftEyeOpenness = Math.abs(landmarks[159][1] - landmarks[145][1]);
+            const rightEyeOpenness = Math.abs(landmarks[386][1] - landmarks[374][1]);
+            
+            if (leftEyeOpenness < 5 && rightEyeOpenness < 5) {
+                expression = 'blink';
+                confidence = 0.9;
+                additionalInfo = 'Eyes closed';
+            }
+            // Detect head turns (simplified - based on nose position)
+            else if (noseTip[0] < canvas.width * 0.4) {
+                expression = 'leftTurn';
+                confidence = 0.7;
+                additionalInfo = 'Head turned left';
+            }
+            else if (noseTip[0] > canvas.width * 0.6) {
+                expression = 'rightTurn';
+                confidence = 0.7;
+                additionalInfo = 'Head turned right';
+            }
+            // Detect up/down movement
+            else if (noseTip[1] < canvas.height * 0.4) {
+                expression = 'up';
+                confidence = 0.6;
+                additionalInfo = 'Looking up';
+            }
+            else if (noseTip[1] > canvas.height * 0.6) {
+                expression = 'down';
+                confidence = 0.6;
+                additionalInfo = 'Looking down';
+            }
+            // Detect smile (mouth corners movement)
+            else {
+                const mouthWidth = Math.abs(mouthRight[0] - mouthLeft[0]);
+                const mouthHeight = Math.abs(mouthCenter[1] - mouthLeft[1]);
+                
+                if (mouthWidth > 80 && mouthHeight > 15) {
+                    expression = 'happy';
+                    confidence = 0.8;
+                    additionalInfo = 'Smiling detected';
+                }
+            }
+            
+            return {
+                expression: expression,
+                confidence: confidence,
+                additionalInfo: additionalInfo,
+                landmarks: landmarks.slice(0, 10) // Send first 10 landmarks for demo
+            };
+        }
+
+        // Update the display with detection results
+        function updateDisplay(analysis) {
+            const emoji = expressionMap[analysis.expression] || '😐';
+            const expressionName = analysis.expression.charAt(0).toUpperCase() + analysis.expression.slice(1);
+            
+            expressionEmoji.textContent = emoji;
+            expressionText.textContent = expressionName;
+            confidenceText.textContent = `Confidence: ${Math.round(analysis.confidence * 100)}%`;
+            statusText.textContent = analysis.additionalInfo || 'Face detected';
+        }
+
+        // Send detection data to server
+        async function sendDetectionToServer(analysis) {
+            if (!currentSessionId) return;
+            
+            try {
+                await fetch('/detect-expression', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sessionId: currentSessionId,
+                        expression: analysis.expression,
+                        confidence: analysis.confidence,
+                        landmarks: analysis.landmarks
+                    })
+                });
+            } catch (error) {
+                console.error('Error sending detection:', error);
+            }
+        }
+
+        // Utility function for logging
+        function log(message, type = 'info') {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            
+            if (type === 'error') {
+                logEntry.style.color = '#ff6b6b';
+            } else if (type === 'success') {
+                logEntry.style.color = '#51cf66';
+            }
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', startDetection);
+        stopBtn.addEventListener('click', stopDetection);
+
+        // Initialize application
+        async function init() {
+            log('Initializing Phistar Face Detector...');
+            
+            const cameraReady = await initCamera();
+            if (!cameraReady) return;
+            
+            const modelReady = await loadModel();
+            if (!modelReady) return;
+            
+            log('Application ready! Click "Start Detection" to begin.');
+            statusText.textContent = 'Ready - Click Start Detection';
+        }
+
+        // Start the application
+        init();
+    </script>
+</body>
+</html>
