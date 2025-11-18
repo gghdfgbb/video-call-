@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ Ultra-Fast Phistar Face Detector</title>
+    <title>⚡ Advanced Face & Speech Detector</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             min-height: 100vh;
             color: white;
             overflow-x: hidden;
@@ -29,6 +29,9 @@
             text-align: center;
             margin-bottom: 20px;
             padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
         }
 
         .header h1 {
@@ -76,13 +79,14 @@
             background: #000;
             border-radius: 8px;
             overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
 
         #video {
             width: 100%;
             height: 400px;
             object-fit: cover;
-            transform: scaleX(-1); /* Mirror effect for better UX */
+            transform: scaleX(-1);
         }
 
         .canvas-overlay {
@@ -115,29 +119,30 @@
         }
 
         .btn-primary {
-            background: #4CAF50;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
             color: white;
         }
 
         .btn-primary:hover {
-            background: #45a049;
             transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
         }
 
         .btn-danger {
-            background: #f44336;
+            background: linear-gradient(45deg, #f44336, #da190b);
             color: white;
         }
 
         .btn-danger:hover {
-            background: #da190b;
             transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.4);
         }
 
         .btn:disabled {
             background: #666;
             cursor: not-allowed;
             transform: none;
+            box-shadow: none;
         }
 
         .detection-display {
@@ -177,6 +182,21 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
+        .speech-indicator {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            padding: 10px;
+            border-radius: 20px;
+            margin: 10px 0;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
         .performance {
             display: flex;
             justify-content: space-around;
@@ -194,6 +214,14 @@
             font-size: 1.2rem;
             font-weight: bold;
             color: #4CAF50;
+        }
+
+        .landmark-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 0.9rem;
         }
 
         .logs {
@@ -247,18 +275,41 @@
             -webkit-text-fill-color: transparent;
             font-weight: bold;
         }
+
+        .dot-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 2px;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: #ff4444;
+            border-radius: 50%;
+            transition: all 0.1s ease;
+        }
+
+        .dot.active {
+            background: #00ff00;
+            transform: scale(1.3);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>⚡ Ultra-Fast Phistar Face Detector</h1>
-            <p>Real-time facial expression detection with <span class="fast-indicator">millisecond response</span></p>
+            <h1>⚡ Advanced Face & Speech Detector</h1>
+            <p>Real-time facial landmarks, expressions, and speech detection with <span class="fast-indicator">classic red dot system</span></p>
         </div>
 
         <div class="main-content">
             <div class="camera-section">
-                <h2 class="section-title">📹 Camera Feed</h2>
+                <h2 class="section-title">📹 Live Camera Feed</h2>
                 <div class="video-container">
                     <video id="video" autoplay playsinline></video>
                     <canvas id="canvas" class="canvas-overlay"></canvas>
@@ -267,6 +318,15 @@
                     <button id="startBtn" class="btn btn-primary">Start Detection</button>
                     <button id="stopBtn" class="btn btn-danger" disabled>Stop Detection</button>
                 </div>
+                
+                <div class="landmark-info">
+                    <h3>🔴 Facial Landmark System</h3>
+                    <p>Red dots show key facial points. Green dots indicate active movement detection.</p>
+                    <div class="dot-grid" id="dotGrid">
+                        <!-- Dots will be generated by JavaScript -->
+                    </div>
+                </div>
+                
                 <div class="performance">
                     <div class="performance-item">
                         <div class="performance-value" id="fpsCounter">0 FPS</div>
@@ -276,20 +336,41 @@
                         <div class="performance-value" id="detectionTime">0ms</div>
                         <div>Processing Time</div>
                     </div>
+                    <div class="performance-item">
+                        <div class="performance-value" id="landmarkCount">0</div>
+                        <div>Landmarks</div>
+                    </div>
                 </div>
+                
                 <div class="loading" id="loading">
                     <div class="spinner"></div>
-                    <p>Loading ULTRA-FAST face detection model...</p>
+                    <p>Loading Advanced Face & Speech Detection...</p>
                 </div>
             </div>
 
             <div class="detection-section">
-                <h2 class="section-title">🔍 Real-time Results</h2>
+                <h2 class="section-title">🔍 Real-time Analysis</h2>
                 <div class="detection-display">
                     <div class="expression" id="expressionEmoji">😐</div>
                     <div class="expression-text" id="expressionText">Neutral</div>
                     <div class="confidence" id="confidenceText">Confidence: 0%</div>
-                    <div class="status" id="statusText">Ready for ultra-fast detection</div>
+                    
+                    <div id="speechIndicator" class="speech-indicator" style="display: none;">
+                        🗣️ SPEAKING DETECTED!
+                    </div>
+                    
+                    <div class="status" id="statusText">Ready for advanced detection</div>
+                    
+                    <div class="performance">
+                        <div class="performance-item">
+                            <div class="performance-value" id="mouthOpenness">0%</div>
+                            <div>Mouth Open</div>
+                        </div>
+                        <div class="performance-item">
+                            <div class="performance-value" id="headTurn">Center</div>
+                            <div>Head Position</div>
+                        </div>
+                    </div>
                     
                     <div class="logs">
                         <h3>Activity Log</h3>
@@ -300,7 +381,7 @@
         </div>
 
         <div class="footer">
-            <p>Phistar Ultra-Fast Face Detection | Millisecond response times | Optimized for real-time use</p>
+            <p>Phistar Advanced Detection System | Facial Landmarks • Speech Detection • Real-time Analysis</p>
         </div>
     </div>
 
@@ -309,7 +390,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.1/dist/face-landmarks-detection.min.js"></script>
 
     <script>
-        // Global variables for ultra-fast detection
+        // Global variables for advanced detection
         let video = document.getElementById('video');
         let canvas = document.getElementById('canvas');
         let ctx = canvas.getContext('2d');
@@ -326,6 +407,11 @@
         let totalDetectionTime = 0;
         let detectionCount = 0;
 
+        // Speech detection
+        let isSpeaking = false;
+        let speechStartTime = 0;
+        let mouthOpennessHistory = [];
+
         // DOM elements
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
@@ -337,8 +423,13 @@
         const logContainer = document.getElementById('logContainer');
         const fpsCounter = document.getElementById('fpsCounter');
         const detectionTime = document.getElementById('detectionTime');
+        const landmarkCount = document.getElementById('landmarkCount');
+        const speechIndicator = document.getElementById('speechIndicator');
+        const mouthOpenness = document.getElementById('mouthOpenness');
+        const headTurn = document.getElementById('headTurn');
+        const dotGrid = document.getElementById('dotGrid');
 
-        // Enhanced expression mapping with more variations
+        // Enhanced expression mapping
         const expressionMap = {
             'neutral': '😐',
             'happy': '😊',
@@ -355,8 +446,41 @@
             'up': '👆',
             'down': '👇',
             'smirk': '😏',
-            'wink': '😉'
+            'wink': '😉',
+            'speaking': '🗣️',
+            'listening': '👂'
         };
+
+        // Initialize dot grid for landmark visualization
+        function initializeDotGrid() {
+            dotGrid.innerHTML = '';
+            for (let i = 0; i < 50; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                dot.id = `dot-${i}`;
+                dotGrid.appendChild(dot);
+            }
+        }
+
+        // Update dot grid based on facial activity
+        function updateDotGrid(activityLevel, isSpeaking) {
+            const dots = document.querySelectorAll('.dot');
+            const activeCount = Math.floor(activityLevel * dots.length);
+            
+            dots.forEach((dot, index) => {
+                if (index < activeCount) {
+                    dot.classList.add('active');
+                    if (isSpeaking) {
+                        dot.style.background = '#ffaa00'; // Orange for speaking
+                    } else {
+                        dot.style.background = '#00ff00'; // Green for active
+                    }
+                } else {
+                    dot.classList.remove('active');
+                    dot.style.background = '#ff4444'; // Red for inactive
+                }
+            });
+        }
 
         // Initialize camera with optimized settings
         async function initCamera() {
@@ -366,7 +490,7 @@
                         width: { ideal: 640 }, 
                         height: { ideal: 480 },
                         facingMode: 'user',
-                        frameRate: { ideal: 30 } // Optimize frame rate
+                        frameRate: { ideal: 30 }
                     } 
                 });
                 video.srcObject = stream;
@@ -376,7 +500,7 @@
                     canvas.height = video.videoHeight;
                 });
                 
-                log('📹 Camera ready - Optimized for speed');
+                log('📹 Camera ready - Advanced detection enabled');
                 return true;
             } catch (error) {
                 log('❌ Camera error: ' + error.message, 'error');
@@ -388,21 +512,20 @@
         async function loadModel() {
             try {
                 loading.style.display = 'block';
-                statusText.textContent = 'Loading ULTRA-FAST face detection...';
+                statusText.textContent = 'Loading Advanced Face & Speech Detection...';
                 
-                // Use lighter model for speed
                 model = await faceLandmarksDetection.load(
                     faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
                     { 
                         maxFaces: 1,
                         refineLandmarks: true,
-                        detectionFlips: false // Disable flips for speed
+                        detectionFlips: false
                     }
                 );
                 
                 loading.style.display = 'none';
-                statusText.textContent = '⚡ ULTRA-FAST model loaded!';
-                log('✅ Face detection model loaded - Optimized for speed');
+                statusText.textContent = '⚡ Advanced detection ready!';
+                log('✅ Face detection model loaded - Speech detection enabled');
                 return true;
             } catch (error) {
                 loading.style.display = 'none';
@@ -412,7 +535,7 @@
             }
         }
 
-        // Start ultra-fast detection session
+        // Start advanced detection session
         async function startDetection() {
             try {
                 const response = await fetch('/start-session', {
@@ -427,10 +550,9 @@
                     isDetecting = true;
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
-                    statusText.textContent = '⚡ ULTRA-FAST detection active!';
-                    log('🚀 Ultra-fast detection started: ' + currentSessionId);
+                    statusText.textContent = '⚡ Advanced detection active!';
+                    log('🚀 Advanced detection started: ' + currentSessionId);
                     
-                    // Use requestAnimationFrame for optimal performance
                     detectFaces();
                 } else {
                     throw new Error(data.error);
@@ -448,6 +570,7 @@
             startBtn.disabled = false;
             stopBtn.disabled = true;
             statusText.textContent = 'Detection stopped';
+            speechIndicator.style.display = 'none';
             
             if (currentSessionId) {
                 try {
@@ -465,6 +588,7 @@
             
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             resetDisplay();
+            updateDotGrid(0, false);
         }
 
         // Reset display to neutral
@@ -472,9 +596,11 @@
             expressionEmoji.textContent = '😐';
             expressionText.textContent = 'Neutral';
             confidenceText.textContent = 'Confidence: 0%';
+            mouthOpenness.textContent = '0%';
+            headTurn.textContent = 'Center';
         }
 
-        // Ultra-fast face detection using requestAnimationFrame
+        // Advanced face detection with speech recognition
         async function detectFaces() {
             if (!model || !isDetecting) return;
             
@@ -486,22 +612,26 @@
                     input: video,
                     returnTensors: false,
                     flipHorizontal: false,
-                    predictIrises: false // Disable iris detection for speed
+                    predictIrises: true // Enable iris for better accuracy
                 });
                 
-                // Fast canvas clear
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
                 if (predictions.length > 0) {
                     const face = predictions[0];
-                    drawFaceFast(face);
+                    drawAdvancedLandmarks(face);
                     
-                    const analysis = analyzeFaceUltraFast(face);
-                    updateDisplayUltraFast(analysis);
+                    const analysis = analyzeFaceWithSpeech(face);
+                    updateDisplayWithSpeech(analysis);
                     sendDetectionToServer(analysis);
+                    
+                    // Update performance metrics
+                    landmarkCount.textContent = face.scaledMesh.length;
+                    updateDotGrid(analysis.activityLevel, analysis.isSpeaking);
                 } else {
-                    statusText.textContent = '⚡ No face - Ready to detect';
+                    statusText.textContent = '⚡ No face detected';
                     resetDisplay();
+                    updateDotGrid(0, false);
                 }
                 
                 updatePerformanceMetrics();
@@ -512,17 +642,17 @@
                 }
             }
             
-            // Continue detection loop
             if (isDetecting) {
                 detectionInterval = requestAnimationFrame(detectFaces);
             }
         }
 
-        // Ultra-fast face drawing with minimal operations
-        function drawFaceFast(face) {
+        // Draw advanced facial landmarks with classic red dots
+        function drawAdvancedLandmarks(face) {
+            const landmarks = face.scaledMesh;
             const boundingBox = face.boundingBox;
             
-            // Fast bounding box
+            // Draw bounding box
             ctx.strokeStyle = '#00ff00';
             ctx.lineWidth = 2;
             ctx.strokeRect(
@@ -532,62 +662,121 @@
                 boundingBox.bottomRight[1] - boundingBox.topLeft[1]
             );
             
-            // Fast landmarks - only draw key points
+            // Draw key facial points as red dots
             ctx.fillStyle = '#ff0000';
-            const keyPoints = [33, 133, 362, 263, 61, 291, 13]; // Key facial points
+            
+            // Key facial landmarks (simplified set for performance)
+            const keyPoints = [
+                // Eyes
+                33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246,
+                362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398,
+                // Eyebrows
+                55, 65, 52, 53, 46, 285, 295, 282, 283, 276,
+                // Nose
+                1, 2, 98, 327,
+                // Mouth (important for speech)
+                61, 84, 17, 314, 405, 320, 307, 81, 82, 13, 312, 311, 310, 415, 95, 88,
+                78, 191, 80, 81, 82, 87, 14, 317, 402, 318, 324, 308,
+                // Face contour
+                10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400
+            ];
+            
             keyPoints.forEach(index => {
-                const point = face.scaledMesh[index];
-                ctx.fillRect(point[0] - 1, point[1] - 1, 3, 3);
+                if (landmarks[index]) {
+                    const point = landmarks[index];
+                    ctx.beginPath();
+                    ctx.arc(point[0], point[1], 2, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
             });
+            
+            // Draw mouth outline for speech visualization
+            drawMouthOutline(landmarks);
         }
 
-        // Ultra-fast facial expression analysis
-        function analyzeFaceUltraFast(face) {
+        // Draw mouth outline for speech detection visualization
+        function drawMouthOutline(landmarks) {
+            const mouthPoints = [61, 84, 17, 314, 405, 320, 307, 81, 82, 13, 312, 311, 310, 415, 95, 88, 78];
+            
+            ctx.strokeStyle = isSpeaking ? '#ffaa00' : '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            mouthPoints.forEach((index, i) => {
+                const point = landmarks[index];
+                if (point) {
+                    if (i === 0) {
+                        ctx.moveTo(point[0], point[1]);
+                    } else {
+                        ctx.lineTo(point[0], point[1]);
+                    }
+                }
+            });
+            
+            ctx.closePath();
+            ctx.stroke();
+        }
+
+        // Advanced facial analysis with speech detection
+        function analyzeFaceWithSpeech(face) {
             const landmarks = face.scaledMesh;
             
-            // Get key points with minimal calculations
-            const leftEye = landmarks[33];
-            const rightEye = landmarks[263];
+            // Get key points
             const noseTip = landmarks[1];
             const mouthLeft = landmarks[61];
             const mouthRight = landmarks[291];
             const mouthTop = landmarks[13];
             const mouthBottom = landmarks[14];
+            const leftEye = landmarks[33];
+            const rightEye = landmarks[263];
             const leftEyebrow = landmarks[65];
             const rightEyebrow = landmarks[295];
             
             let expression = 'neutral';
             let confidence = 0.8;
             let additionalInfo = 'Face detected';
+            let activityLevel = 0;
             
-            // Ultra-fast blink detection
-            const leftEyeOpenness = Math.abs(landmarks[159][1] - landmarks[145][1]);
-            const rightEyeOpenness = Math.abs(landmarks[386][1] - landmarks[374][1]);
+            // Calculate mouth openness for speech detection
+            const mouthWidth = Math.abs(mouthRight[0] - mouthLeft[0]);
+            const mouthHeight = Math.abs(mouthBottom[1] - mouthTop[1]);
+            const currentMouthOpenness = (mouthHeight / mouthWidth) * 100;
             
-            if (leftEyeOpenness < 3 && rightEyeOpenness < 3) {
-                expression = 'blink';
-                confidence = 0.95;
-                additionalInfo = 'BLINK DETECTED!';
+            // Update mouth openness history for speech detection
+            mouthOpennessHistory.push(currentMouthOpenness);
+            if (mouthOpennessHistory.length > 10) {
+                mouthOpennessHistory.shift();
             }
-            // Ultra-fast smile detection
+            
+            // Speech detection logic
+            const avgMouthOpenness = mouthOpennessHistory.reduce((a, b) => a + b) / mouthOpennessHistory.length;
+            const mouthOpennessVariation = Math.max(...mouthOpennessHistory) - Math.min(...mouthOpennessHistory);
+            
+            isSpeaking = avgMouthOpenness > 15 && mouthOpennessVariation > 5;
+            
+            if (isSpeaking) {
+                expression = 'speaking';
+                confidence = 0.9;
+                additionalInfo = 'SPEAKING DETECTED - Mouth movement active';
+                activityLevel = 0.8;
+            }
+            // Enhanced expression detection
             else {
-                const mouthWidth = Math.abs(mouthRight[0] - mouthLeft[0]);
-                const mouthHeight = Math.abs(mouthBottom[1] - mouthTop[1]);
-                const mouthOpenness = mouthHeight;
-                
-                // Smile detection (mouth corners move up and out)
-                const smileIntensity = (mouthWidth / 80) + (mouthOpenness / 20);
+                // Smile detection
+                const smileIntensity = (mouthWidth / 80) + (mouthHeight / 20);
                 
                 if (smileIntensity > 2.5) {
                     expression = 'very_happy';
                     confidence = Math.min(0.95, smileIntensity / 3);
                     additionalInfo = 'BIG SMILE!';
+                    activityLevel = 0.7;
                 } else if (smileIntensity > 1.8) {
                     expression = 'happy';
                     confidence = Math.min(0.85, smileIntensity / 2.5);
                     additionalInfo = 'Smiling detected';
+                    activityLevel = 0.6;
                 }
-                // Ultra-fast sad detection (mouth corners down, eyebrows angled)
+                // Sad detection
                 else {
                     const eyebrowAngle = (leftEyebrow[1] - landmarks[65][1]) + (rightEyebrow[1] - landmarks[295][1]);
                     const mouthCornersDown = (mouthLeft[1] - landmarks[61][1]) + (mouthRight[1] - landmarks[291][1]);
@@ -596,45 +785,50 @@
                         expression = 'very_sad';
                         confidence = 0.8;
                         additionalInfo = 'SAD expression';
+                        activityLevel = 0.6;
                     } else if (eyebrowAngle > 5) {
                         expression = 'sad';
                         confidence = 0.7;
                         additionalInfo = 'Slightly sad';
+                        activityLevel = 0.5;
                     }
                 }
             }
             
             // Head movement detection
-            if (expression === 'neutral') {
-                if (noseTip[0] < canvas.width * 0.35) {
-                    expression = 'leftTurn';
-                    confidence = 0.8;
-                    additionalInfo = 'Head LEFT';
-                } else if (noseTip[0] > canvas.width * 0.65) {
-                    expression = 'rightTurn';
-                    confidence = 0.8;
-                    additionalInfo = 'Head RIGHT';
-                } else if (noseTip[1] < canvas.height * 0.35) {
-                    expression = 'up';
-                    confidence = 0.7;
-                    additionalInfo = 'Looking UP';
-                } else if (noseTip[1] > canvas.height * 0.65) {
-                    expression = 'down';
-                    confidence = 0.7;
-                    additionalInfo = 'Looking DOWN';
-                }
+            let headPosition = 'Center';
+            if (noseTip[0] < canvas.width * 0.35) {
+                expression = 'leftTurn';
+                headPosition = 'Left';
+                activityLevel = 0.9;
+            } else if (noseTip[0] > canvas.width * 0.65) {
+                expression = 'rightTurn';
+                headPosition = 'Right';
+                activityLevel = 0.9;
+            } else if (noseTip[1] < canvas.height * 0.35) {
+                expression = 'up';
+                headPosition = 'Up';
+                activityLevel = 0.7;
+            } else if (noseTip[1] > canvas.height * 0.65) {
+                expression = 'down';
+                headPosition = 'Down';
+                activityLevel = 0.7;
             }
             
             return {
                 expression: expression,
                 confidence: confidence,
                 additionalInfo: additionalInfo,
-                landmarks: landmarks.slice(0, 5) // Minimal data for speed
+                landmarks: landmarks.slice(0, 10),
+                isSpeaking: isSpeaking,
+                mouthOpenness: currentMouthOpenness,
+                headPosition: headPosition,
+                activityLevel: activityLevel
             };
         }
 
-        // Ultra-fast display update
-        function updateDisplayUltraFast(analysis) {
+        // Enhanced display update with speech indicators
+        function updateDisplayWithSpeech(analysis) {
             const emoji = expressionMap[analysis.expression] || '😐';
             const expressionName = analysis.expression.replace('_', ' ').toUpperCase();
             
@@ -642,21 +836,25 @@
             expressionText.textContent = expressionName;
             confidenceText.textContent = `Confidence: ${Math.round(analysis.confidence * 100)}%`;
             statusText.textContent = analysis.additionalInfo;
+            mouthOpenness.textContent = `${Math.round(analysis.mouthOpenness)}%`;
+            headTurn.textContent = analysis.headPosition;
             
-            // Visual feedback for fast detection
-            expressionEmoji.style.transform = 'scale(1.1)';
-            expressionText.style.color = '#4CAF50';
-            setTimeout(() => {
+            // Speech indicator
+            if (analysis.isSpeaking) {
+                speechIndicator.style.display = 'block';
+                expressionEmoji.style.transform = 'scale(1.2)';
+                expressionText.style.color = '#ffaa00';
+            } else {
+                speechIndicator.style.display = 'none';
                 expressionEmoji.style.transform = 'scale(1)';
                 expressionText.style.color = 'white';
-            }, 50);
+            }
         }
 
-        // Send detection to server (non-blocking)
+        // Send enhanced detection to server
         async function sendDetectionToServer(analysis) {
             if (!currentSessionId) return;
             
-            // Don't await - fire and forget for maximum speed
             fetch('/detect-expression', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -664,9 +862,11 @@
                     sessionId: currentSessionId,
                     expression: analysis.expression,
                     confidence: analysis.confidence,
-                    landmarks: analysis.landmarks
+                    landmarks: analysis.landmarks,
+                    isSpeaking: analysis.isSpeaking,
+                    mouthOpenness: analysis.mouthOpenness
                 })
-            }).catch(() => {}); // Silent fail for speed
+            }).catch(() => {});
         }
 
         // Performance monitoring
@@ -677,7 +877,6 @@
             totalDetectionTime += currentDetectionTime;
             detectionCount++;
             
-            // Update FPS every second
             if (now - lastFpsUpdate >= 1000) {
                 fps = frameCount;
                 frameCount = 0;
@@ -688,7 +887,6 @@
                 fpsCounter.textContent = `${fps} FPS`;
                 detectionTime.textContent = `${avgDetectionTime.toFixed(1)}ms`;
                 
-                // Reset counters
                 totalDetectionTime = 0;
                 detectionCount = 0;
             }
@@ -708,7 +906,6 @@
             
             logContainer.appendChild(logEntry);
             
-            // Keep only last 10 entries for performance
             if (logContainer.children.length > 10) {
                 logContainer.removeChild(logContainer.firstChild);
             }
@@ -720,9 +917,10 @@
         startBtn.addEventListener('click', startDetection);
         stopBtn.addEventListener('click', stopDetection);
 
-        // Ultra-fast initialization
+        // Advanced initialization
         async function init() {
-            log('🚀 Initializing ULTRA-FAST Face Detector...');
+            log('🚀 Initializing Advanced Face & Speech Detector...');
+            initializeDotGrid();
             
             const cameraReady = await initCamera();
             if (!cameraReady) return;
@@ -730,11 +928,11 @@
             const modelReady = await loadModel();
             if (!modelReady) return;
             
-            log('✅ READY! Click "Start Detection" for millisecond response times');
-            statusText.textContent = '⚡ Ready - Click Start for ULTRA-FAST detection';
+            log('✅ READY! Advanced detection with speech recognition active');
+            statusText.textContent = '⚡ Ready - Click Start for Advanced Detection';
         }
 
-        // Start the ultra-fast application
+        // Start the advanced application
         init();
     </script>
 </body>
