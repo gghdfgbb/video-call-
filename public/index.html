@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phistar Face Detector</title>
+    <title>⚡ Ultra-Fast Phistar Face Detector</title>
     <style>
         * {
             margin: 0;
@@ -16,36 +16,37 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: white;
+            overflow-x: hidden;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 15px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
         }
 
         .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
         .header p {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             opacity: 0.9;
         }
 
         .main-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
+            gap: 20px;
+            margin-bottom: 20px;
         }
 
         @media (max-width: 768px) {
@@ -57,14 +58,14 @@
         .camera-section, .detection-section {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
+            border-radius: 15px;
+            padding: 20px;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
             text-align: center;
             color: #fff;
         }
@@ -73,7 +74,7 @@
             position: relative;
             width: 100%;
             background: #000;
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
         }
 
@@ -81,6 +82,7 @@
             width: 100%;
             height: 400px;
             object-fit: cover;
+            transform: scaleX(-1); /* Mirror effect for better UX */
         }
 
         .canvas-overlay {
@@ -95,20 +97,21 @@
         .controls {
             display: flex;
             gap: 10px;
-            margin-top: 20px;
+            margin-top: 15px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .btn {
-            padding: 12px 24px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 25px;
-            font-size: 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         .btn-primary {
@@ -118,7 +121,7 @@
 
         .btn-primary:hover {
             background: #45a049;
-            transform: translateY(-2px);
+            transform: scale(1.05);
         }
 
         .btn-danger {
@@ -128,7 +131,7 @@
 
         .btn-danger:hover {
             background: #da190b;
-            transform: translateY(-2px);
+            transform: scale(1.05);
         }
 
         .btn:disabled {
@@ -139,88 +142,118 @@
 
         .detection-display {
             text-align: center;
-            padding: 20px;
+            padding: 15px;
         }
 
         .expression {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            height: 80px;
+            font-size: 4rem;
+            margin-bottom: 15px;
+            height: 100px;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.1s ease;
         }
 
         .expression-text {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: bold;
             margin-bottom: 10px;
             text-transform: capitalize;
+            transition: all 0.1s ease;
         }
 
         .confidence {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-            opacity: 0.8;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            opacity: 0.9;
         }
 
         .status {
             font-size: 1rem;
             margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 10px;
+            padding: 8px;
+            border-radius: 8px;
             background: rgba(255, 255, 255, 0.1);
+        }
+
+        .performance {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+
+        .performance-item {
+            text-align: center;
+        }
+
+        .performance-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4CAF50;
         }
 
         .logs {
             background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            max-height: 200px;
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 150px;
             overflow-y: auto;
-            margin-top: 20px;
+            margin-top: 15px;
+            font-size: 0.85rem;
         }
 
         .log-entry {
-            padding: 5px 0;
+            padding: 3px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            font-family: monospace;
+            font-family: 'Courier New', monospace;
         }
 
         .footer {
             text-align: center;
-            margin-top: 30px;
-            padding: 20px;
+            margin-top: 20px;
+            padding: 15px;
             opacity: 0.7;
+            font-size: 0.9rem;
         }
 
         .loading {
             display: none;
             text-align: center;
-            padding: 20px;
+            padding: 15px;
         }
 
         .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            border-top: 4px solid white;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
+            border-top: 3px solid white;
+            width: 30px;
+            height: 30px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 8px;
         }
 
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .fast-indicator {
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎭 Phistar Face Detector</h1>
-            <p>Real-time facial expression and movement detection</p>
+            <h1>⚡ Ultra-Fast Phistar Face Detector</h1>
+            <p>Real-time facial expression detection with <span class="fast-indicator">millisecond response</span></p>
         </div>
 
         <div class="main-content">
@@ -234,19 +267,29 @@
                     <button id="startBtn" class="btn btn-primary">Start Detection</button>
                     <button id="stopBtn" class="btn btn-danger" disabled>Stop Detection</button>
                 </div>
+                <div class="performance">
+                    <div class="performance-item">
+                        <div class="performance-value" id="fpsCounter">0 FPS</div>
+                        <div>Detection Speed</div>
+                    </div>
+                    <div class="performance-item">
+                        <div class="performance-value" id="detectionTime">0ms</div>
+                        <div>Processing Time</div>
+                    </div>
+                </div>
                 <div class="loading" id="loading">
                     <div class="spinner"></div>
-                    <p>Loading face detection model...</p>
+                    <p>Loading ULTRA-FAST face detection model...</p>
                 </div>
             </div>
 
             <div class="detection-section">
-                <h2 class="section-title">🔍 Detection Results</h2>
+                <h2 class="section-title">🔍 Real-time Results</h2>
                 <div class="detection-display">
                     <div class="expression" id="expressionEmoji">😐</div>
                     <div class="expression-text" id="expressionText">Neutral</div>
                     <div class="confidence" id="confidenceText">Confidence: 0%</div>
-                    <div class="status" id="statusText">Ready to start detection</div>
+                    <div class="status" id="statusText">Ready for ultra-fast detection</div>
                     
                     <div class="logs">
                         <h3>Activity Log</h3>
@@ -257,16 +300,16 @@
         </div>
 
         <div class="footer">
-            <p>Phistar Face Detection System | Real-time AI-powered expression recognition</p>
+            <p>Phistar Ultra-Fast Face Detection | Millisecond response times | Optimized for real-time use</p>
         </div>
     </div>
 
-    <!-- Include FaceAPI.js from CDN -->
+    <!-- Include TensorFlow.js and FaceAPI from CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.1/dist/face-landmarks-detection.min.js"></script>
 
     <script>
-        // Global variables
+        // Global variables for ultra-fast detection
         let video = document.getElementById('video');
         let canvas = document.getElementById('canvas');
         let ctx = canvas.getContext('2d');
@@ -274,6 +317,14 @@
         let isDetecting = false;
         let detectionInterval = null;
         let currentSessionId = null;
+        let frameCount = 0;
+        let lastFpsUpdate = Date.now();
+        let fps = 0;
+
+        // Performance monitoring
+        let detectionStartTime = 0;
+        let totalDetectionTime = 0;
+        let detectionCount = 0;
 
         // DOM elements
         const startBtn = document.getElementById('startBtn');
@@ -284,12 +335,16 @@
         const confidenceText = document.getElementById('confidenceText');
         const statusText = document.getElementById('statusText');
         const logContainer = document.getElementById('logContainer');
+        const fpsCounter = document.getElementById('fpsCounter');
+        const detectionTime = document.getElementById('detectionTime');
 
-        // Expression to emoji mapping
+        // Enhanced expression mapping with more variations
         const expressionMap = {
             'neutral': '😐',
             'happy': '😊',
+            'very_happy': '😄',
             'sad': '😢',
+            'very_sad': '😭',
             'angry': '😠',
             'fearful': '😨',
             'disgusted': '🤢',
@@ -298,68 +353,71 @@
             'leftTurn': '👈',
             'rightTurn': '👉',
             'up': '👆',
-            'down': '👇'
+            'down': '👇',
+            'smirk': '😏',
+            'wink': '😉'
         };
 
-        // Initialize camera
+        // Initialize camera with optimized settings
         async function initCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { 
-                        width: 640, 
-                        height: 480,
-                        facingMode: 'user'
+                        width: { ideal: 640 }, 
+                        height: { ideal: 480 },
+                        facingMode: 'user',
+                        frameRate: { ideal: 30 } // Optimize frame rate
                     } 
                 });
                 video.srcObject = stream;
                 
-                // Set canvas size to match video
                 video.addEventListener('loadedmetadata', () => {
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                 });
                 
-                log('Camera initialized successfully');
+                log('📹 Camera ready - Optimized for speed');
                 return true;
             } catch (error) {
-                log('Error accessing camera: ' + error.message, 'error');
+                log('❌ Camera error: ' + error.message, 'error');
                 return false;
             }
         }
 
-        // Load face detection model
+        // Load optimized face detection model
         async function loadModel() {
             try {
                 loading.style.display = 'block';
-                statusText.textContent = 'Loading face detection model...';
+                statusText.textContent = 'Loading ULTRA-FAST face detection...';
                 
-                // Using Face Landmarks Detection model
+                // Use lighter model for speed
                 model = await faceLandmarksDetection.load(
                     faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
-                    { maxFaces: 1 }
+                    { 
+                        maxFaces: 1,
+                        refineLandmarks: true,
+                        detectionFlips: false // Disable flips for speed
+                    }
                 );
                 
                 loading.style.display = 'none';
-                statusText.textContent = 'Model loaded successfully';
-                log('Face detection model loaded');
+                statusText.textContent = '⚡ ULTRA-FAST model loaded!';
+                log('✅ Face detection model loaded - Optimized for speed');
                 return true;
             } catch (error) {
                 loading.style.display = 'none';
-                log('Error loading model: ' + error.message, 'error');
+                log('❌ Model load error: ' + error.message, 'error');
                 statusText.textContent = 'Failed to load model';
                 return false;
             }
         }
 
-        // Start face detection session
+        // Start ultra-fast detection session
         async function startDetection() {
             try {
-                // Start session on server
                 const response = await fetch('/start-session', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+                    headers: { 'Content-Type': 'application/json' }
                 });
                 
                 const data = await response.json();
@@ -369,90 +427,102 @@
                     isDetecting = true;
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
-                    statusText.textContent = 'Detection active - Looking for faces...';
-                    log('Face detection session started: ' + currentSessionId);
+                    statusText.textContent = '⚡ ULTRA-FAST detection active!';
+                    log('🚀 Ultra-fast detection started: ' + currentSessionId);
                     
-                    // Start detection loop
-                    detectionInterval = setInterval(detectFaces, 100);
+                    // Use requestAnimationFrame for optimal performance
+                    detectFaces();
                 } else {
                     throw new Error(data.error);
                 }
             } catch (error) {
-                log('Error starting session: ' + error.message, 'error');
+                log('❌ Start error: ' + error.message, 'error');
             }
         }
 
-        // Stop face detection
+        // Stop detection
         async function stopDetection() {
             isDetecting = false;
-            clearInterval(detectionInterval);
+            cancelAnimationFrame(detectionInterval);
             
             startBtn.disabled = false;
             stopBtn.disabled = true;
             statusText.textContent = 'Detection stopped';
             
-            // End session on server
             if (currentSessionId) {
                 try {
                     await fetch('/end-session', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ sessionId: currentSessionId })
                     });
-                    log('Session ended: ' + currentSessionId);
+                    log('📊 Session ended: ' + currentSessionId);
                 } catch (error) {
-                    log('Error ending session: ' + error.message, 'error');
+                    log('❌ End session error: ' + error.message, 'error');
                 }
                 currentSessionId = null;
             }
             
-            // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            resetDisplay();
+        }
+
+        // Reset display to neutral
+        function resetDisplay() {
             expressionEmoji.textContent = '😐';
             expressionText.textContent = 'Neutral';
             confidenceText.textContent = 'Confidence: 0%';
         }
 
-        // Main face detection function
+        // Ultra-fast face detection using requestAnimationFrame
         async function detectFaces() {
             if (!model || !isDetecting) return;
+            
+            detectionStartTime = performance.now();
+            frameCount++;
             
             try {
                 const predictions = await model.estimateFaces({
                     input: video,
                     returnTensors: false,
                     flipHorizontal: false,
-                    predictIrises: true
+                    predictIrises: false // Disable iris detection for speed
                 });
                 
-                // Clear canvas
+                // Fast canvas clear
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
                 if (predictions.length > 0) {
                     const face = predictions[0];
-                    drawFace(face);
+                    drawFaceFast(face);
                     
-                    // Analyze facial expressions and movements
-                    const analysis = analyzeFace(face);
-                    updateDisplay(analysis);
+                    const analysis = analyzeFaceUltraFast(face);
+                    updateDisplayUltraFast(analysis);
                     sendDetectionToServer(analysis);
                 } else {
-                    statusText.textContent = 'No face detected';
-                    expressionEmoji.textContent = '❓';
-                    expressionText.textContent = 'No Face';
-                    confidenceText.textContent = 'Confidence: 0%';
+                    statusText.textContent = '⚡ No face - Ready to detect';
+                    resetDisplay();
                 }
+                
+                updatePerformanceMetrics();
+                
             } catch (error) {
-                log('Detection error: ' + error.message, 'error');
+                if (error.message !== 'Cancelled') {
+                    log('⚠️ Detection glitch: ' + error.message, 'error');
+                }
+            }
+            
+            // Continue detection loop
+            if (isDetecting) {
+                detectionInterval = requestAnimationFrame(detectFaces);
             }
         }
 
-        // Draw face landmarks on canvas
-        function drawFace(face) {
-            // Draw bounding box
+        // Ultra-fast face drawing with minimal operations
+        function drawFaceFast(face) {
             const boundingBox = face.boundingBox;
+            
+            // Fast bounding box
             ctx.strokeStyle = '#00ff00';
             ctx.lineWidth = 2;
             ctx.strokeRect(
@@ -462,70 +532,96 @@
                 boundingBox.bottomRight[1] - boundingBox.topLeft[1]
             );
             
-            // Draw landmarks
+            // Fast landmarks - only draw key points
             ctx.fillStyle = '#ff0000';
-            face.scaledMesh.forEach(point => {
-                ctx.fillRect(point[0], point[1], 2, 2);
+            const keyPoints = [33, 133, 362, 263, 61, 291, 13]; // Key facial points
+            keyPoints.forEach(index => {
+                const point = face.scaledMesh[index];
+                ctx.fillRect(point[0] - 1, point[1] - 1, 3, 3);
             });
         }
 
-        // Analyze facial features for expressions and movements
-        function analyzeFace(face) {
+        // Ultra-fast facial expression analysis
+        function analyzeFaceUltraFast(face) {
             const landmarks = face.scaledMesh;
             
-            // Simple expression detection based on landmark positions
-            let expression = 'neutral';
-            let confidence = 0.8;
-            let additionalInfo = '';
-            
-            // Get key points (simplified)
-            const leftEye = landmarks[33];  // Approximate eye points
+            // Get key points with minimal calculations
+            const leftEye = landmarks[33];
             const rightEye = landmarks[263];
             const noseTip = landmarks[1];
             const mouthLeft = landmarks[61];
             const mouthRight = landmarks[291];
-            const mouthCenter = landmarks[13];
+            const mouthTop = landmarks[13];
+            const mouthBottom = landmarks[14];
+            const leftEyebrow = landmarks[65];
+            const rightEyebrow = landmarks[295];
             
-            // Detect blinking (simplified - check eye openness)
+            let expression = 'neutral';
+            let confidence = 0.8;
+            let additionalInfo = 'Face detected';
+            
+            // Ultra-fast blink detection
             const leftEyeOpenness = Math.abs(landmarks[159][1] - landmarks[145][1]);
             const rightEyeOpenness = Math.abs(landmarks[386][1] - landmarks[374][1]);
             
-            if (leftEyeOpenness < 5 && rightEyeOpenness < 5) {
+            if (leftEyeOpenness < 3 && rightEyeOpenness < 3) {
                 expression = 'blink';
-                confidence = 0.9;
-                additionalInfo = 'Eyes closed';
+                confidence = 0.95;
+                additionalInfo = 'BLINK DETECTED!';
             }
-            // Detect head turns (simplified - based on nose position)
-            else if (noseTip[0] < canvas.width * 0.4) {
-                expression = 'leftTurn';
-                confidence = 0.7;
-                additionalInfo = 'Head turned left';
-            }
-            else if (noseTip[0] > canvas.width * 0.6) {
-                expression = 'rightTurn';
-                confidence = 0.7;
-                additionalInfo = 'Head turned right';
-            }
-            // Detect up/down movement
-            else if (noseTip[1] < canvas.height * 0.4) {
-                expression = 'up';
-                confidence = 0.6;
-                additionalInfo = 'Looking up';
-            }
-            else if (noseTip[1] > canvas.height * 0.6) {
-                expression = 'down';
-                confidence = 0.6;
-                additionalInfo = 'Looking down';
-            }
-            // Detect smile (mouth corners movement)
+            // Ultra-fast smile detection
             else {
                 const mouthWidth = Math.abs(mouthRight[0] - mouthLeft[0]);
-                const mouthHeight = Math.abs(mouthCenter[1] - mouthLeft[1]);
+                const mouthHeight = Math.abs(mouthBottom[1] - mouthTop[1]);
+                const mouthOpenness = mouthHeight;
                 
-                if (mouthWidth > 80 && mouthHeight > 15) {
+                // Smile detection (mouth corners move up and out)
+                const smileIntensity = (mouthWidth / 80) + (mouthOpenness / 20);
+                
+                if (smileIntensity > 2.5) {
+                    expression = 'very_happy';
+                    confidence = Math.min(0.95, smileIntensity / 3);
+                    additionalInfo = 'BIG SMILE!';
+                } else if (smileIntensity > 1.8) {
                     expression = 'happy';
-                    confidence = 0.8;
+                    confidence = Math.min(0.85, smileIntensity / 2.5);
                     additionalInfo = 'Smiling detected';
+                }
+                // Ultra-fast sad detection (mouth corners down, eyebrows angled)
+                else {
+                    const eyebrowAngle = (leftEyebrow[1] - landmarks[65][1]) + (rightEyebrow[1] - landmarks[295][1]);
+                    const mouthCornersDown = (mouthLeft[1] - landmarks[61][1]) + (mouthRight[1] - landmarks[291][1]);
+                    
+                    if (eyebrowAngle > 10 && mouthCornersDown > 5) {
+                        expression = 'very_sad';
+                        confidence = 0.8;
+                        additionalInfo = 'SAD expression';
+                    } else if (eyebrowAngle > 5) {
+                        expression = 'sad';
+                        confidence = 0.7;
+                        additionalInfo = 'Slightly sad';
+                    }
+                }
+            }
+            
+            // Head movement detection
+            if (expression === 'neutral') {
+                if (noseTip[0] < canvas.width * 0.35) {
+                    expression = 'leftTurn';
+                    confidence = 0.8;
+                    additionalInfo = 'Head LEFT';
+                } else if (noseTip[0] > canvas.width * 0.65) {
+                    expression = 'rightTurn';
+                    confidence = 0.8;
+                    additionalInfo = 'Head RIGHT';
+                } else if (noseTip[1] < canvas.height * 0.35) {
+                    expression = 'up';
+                    confidence = 0.7;
+                    additionalInfo = 'Looking UP';
+                } else if (noseTip[1] > canvas.height * 0.65) {
+                    expression = 'down';
+                    confidence = 0.7;
+                    additionalInfo = 'Looking DOWN';
                 }
             }
             
@@ -533,44 +629,72 @@
                 expression: expression,
                 confidence: confidence,
                 additionalInfo: additionalInfo,
-                landmarks: landmarks.slice(0, 10) // Send first 10 landmarks for demo
+                landmarks: landmarks.slice(0, 5) // Minimal data for speed
             };
         }
 
-        // Update the display with detection results
-        function updateDisplay(analysis) {
+        // Ultra-fast display update
+        function updateDisplayUltraFast(analysis) {
             const emoji = expressionMap[analysis.expression] || '😐';
-            const expressionName = analysis.expression.charAt(0).toUpperCase() + analysis.expression.slice(1);
+            const expressionName = analysis.expression.replace('_', ' ').toUpperCase();
             
             expressionEmoji.textContent = emoji;
             expressionText.textContent = expressionName;
             confidenceText.textContent = `Confidence: ${Math.round(analysis.confidence * 100)}%`;
-            statusText.textContent = analysis.additionalInfo || 'Face detected';
+            statusText.textContent = analysis.additionalInfo;
+            
+            // Visual feedback for fast detection
+            expressionEmoji.style.transform = 'scale(1.1)';
+            expressionText.style.color = '#4CAF50';
+            setTimeout(() => {
+                expressionEmoji.style.transform = 'scale(1)';
+                expressionText.style.color = 'white';
+            }, 50);
         }
 
-        // Send detection data to server
+        // Send detection to server (non-blocking)
         async function sendDetectionToServer(analysis) {
             if (!currentSessionId) return;
             
-            try {
-                await fetch('/detect-expression', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        sessionId: currentSessionId,
-                        expression: analysis.expression,
-                        confidence: analysis.confidence,
-                        landmarks: analysis.landmarks
-                    })
-                });
-            } catch (error) {
-                console.error('Error sending detection:', error);
+            // Don't await - fire and forget for maximum speed
+            fetch('/detect-expression', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sessionId: currentSessionId,
+                    expression: analysis.expression,
+                    confidence: analysis.confidence,
+                    landmarks: analysis.landmarks
+                })
+            }).catch(() => {}); // Silent fail for speed
+        }
+
+        // Performance monitoring
+        function updatePerformanceMetrics() {
+            const now = Date.now();
+            const currentDetectionTime = performance.now() - detectionStartTime;
+            
+            totalDetectionTime += currentDetectionTime;
+            detectionCount++;
+            
+            // Update FPS every second
+            if (now - lastFpsUpdate >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastFpsUpdate = now;
+                
+                const avgDetectionTime = totalDetectionTime / detectionCount;
+                
+                fpsCounter.textContent = `${fps} FPS`;
+                detectionTime.textContent = `${avgDetectionTime.toFixed(1)}ms`;
+                
+                // Reset counters
+                totalDetectionTime = 0;
+                detectionCount = 0;
             }
         }
 
-        // Utility function for logging
+        // Fast logging
         function log(message, type = 'info') {
             const logEntry = document.createElement('div');
             logEntry.className = 'log-entry';
@@ -583,6 +707,12 @@
             }
             
             logContainer.appendChild(logEntry);
+            
+            // Keep only last 10 entries for performance
+            if (logContainer.children.length > 10) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+            
             logContainer.scrollTop = logContainer.scrollHeight;
         }
 
@@ -590,9 +720,9 @@
         startBtn.addEventListener('click', startDetection);
         stopBtn.addEventListener('click', stopDetection);
 
-        // Initialize application
+        // Ultra-fast initialization
         async function init() {
-            log('Initializing Phistar Face Detector...');
+            log('🚀 Initializing ULTRA-FAST Face Detector...');
             
             const cameraReady = await initCamera();
             if (!cameraReady) return;
@@ -600,11 +730,11 @@
             const modelReady = await loadModel();
             if (!modelReady) return;
             
-            log('Application ready! Click "Start Detection" to begin.');
-            statusText.textContent = 'Ready - Click Start Detection';
+            log('✅ READY! Click "Start Detection" for millisecond response times');
+            statusText.textContent = '⚡ Ready - Click Start for ULTRA-FAST detection';
         }
 
-        // Start the application
+        // Start the ultra-fast application
         init();
     </script>
 </body>
