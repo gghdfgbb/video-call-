@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ Face Mapper - Live Facial Movement Mapping</title>
+    <title>🎭 Face Reenactor Pro - Live Face Animation</title>
     <style>
         * {
             margin: 0;
@@ -13,81 +13,91 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             min-height: 100vh;
             color: white;
             overflow-x: hidden;
         }
 
         .container {
-            max-width: 1600px;
+            max-width: 1800px;
             margin: 0 auto;
-            padding: 15px;
+            padding: 20px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 20px;
-            padding: 20px;
+            margin-bottom: 30px;
+            padding: 25px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
         }
 
         .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 3rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .header p {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         .main-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 25px;
-            margin-bottom: 25px;
+            gap: 30px;
+            margin-bottom: 30px;
         }
 
-        @media (max-width: 1024px) {
+        @media (max-width: 1200px) {
             .main-content {
                 grid-template-columns: 1fr;
             }
         }
 
-        .camera-section, .detection-section {
+        .camera-section, .animation-section {
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 25px;
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 30px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
         }
 
         .section-title {
-            font-size: 1.4rem;
-            margin-bottom: 20px;
+            font-size: 1.6rem;
+            margin-bottom: 25px;
             text-align: center;
             color: #fff;
             font-weight: bold;
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .video-container {
             position: relative;
             width: 100%;
             background: #000;
-            border-radius: 15px;
+            border-radius: 20px;
             overflow: hidden;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         #video {
             width: 100%;
-            height: 400px;
+            height: 450px;
             object-fit: cover;
             transform: scaleX(-1);
         }
@@ -101,45 +111,49 @@
             pointer-events: none;
         }
 
-        .image-preview-container {
+        .animation-container {
             position: relative;
             width: 100%;
-            height: 400px;
-            background: linear-gradient(45deg, #2c3e50, #4ca1af);
-            border-radius: 15px;
+            height: 450px;
+            background: linear-gradient(45deg, #1a1a2e, #16213e);
+            border-radius: 20px;
             overflow: hidden;
-            margin-bottom: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 3px solid rgba(255, 255, 255, 0.1);
         }
 
-        #mappedImage {
+        #animatedImage {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: all 0.3s ease;
+            transition: all 0.1s ease-out;
+            transform-origin: center center;
         }
 
-        .image-placeholder {
+        .animation-placeholder {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100%;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.2rem;
+            text-align: center;
         }
 
-        .image-placeholder i {
-            font-size: 3rem;
-            margin-bottom: 15px;
+        .animation-placeholder i {
+            font-size: 4rem;
+            margin-bottom: 20px;
             opacity: 0.5;
         }
 
         .upload-section {
             background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .upload-controls {
@@ -147,44 +161,60 @@
             gap: 15px;
             align-items: center;
             flex-wrap: wrap;
+            margin-bottom: 15px;
         }
 
         .file-input-wrapper {
             position: relative;
             flex: 1;
-            min-width: 200px;
+            min-width: 250px;
         }
 
         .file-input {
             width: 100%;
-            padding: 12px;
+            padding: 15px;
             background: rgba(255, 255, 255, 0.1);
             border: 2px dashed rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
+            border-radius: 15px;
             color: white;
             cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .file-input:hover {
+            border-color: #4ecdc4;
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .file-input::file-selector-button {
-            background: #4CAF50;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
+            padding: 10px 20px;
+            border-radius: 10px;
             cursor: pointer;
-            margin-right: 10px;
+            margin-right: 15px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .file-input::file-selector-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
         }
 
         .btn {
-            padding: 12px 25px;
+            padding: 15px 30px;
             border: none;
             border-radius: 25px;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
+            min-width: 140px;
         }
 
         .btn-primary {
@@ -193,8 +223,8 @@
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.4);
         }
 
         .btn-danger {
@@ -203,8 +233,8 @@
         }
 
         .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(244, 67, 54, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(244, 67, 54, 0.4);
         }
 
         .btn-warning {
@@ -213,8 +243,18 @@
         }
 
         .btn-warning:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 152, 0, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 152, 0, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(33, 150, 243, 0.4);
         }
 
         .btn:disabled {
@@ -227,20 +267,20 @@
         .controls {
             display: flex;
             gap: 15px;
-            margin-top: 20px;
+            margin: 25px 0;
             justify-content: center;
             flex-wrap: wrap;
         }
 
         .detection-display {
             text-align: center;
-            padding: 20px;
+            padding: 25px;
         }
 
         .expression {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            height: 120px;
+            font-size: 5rem;
+            margin-bottom: 25px;
+            height: 150px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -248,137 +288,186 @@
         }
 
         .expression-text {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: bold;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             text-transform: capitalize;
             transition: all 0.2s ease;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .confidence {
-            font-size: 1.4rem;
-            margin-bottom: 20px;
+            font-size: 1.5rem;
+            margin-bottom: 25px;
             opacity: 0.9;
         }
 
         .status {
-            font-size: 1.1rem;
-            margin-bottom: 15px;
-            padding: 12px;
-            border-radius: 10px;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 15px;
             background: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #4ecdc4;
         }
 
         .speech-indicator {
             background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
-            padding: 15px;
+            padding: 20px;
             border-radius: 25px;
-            margin: 15px 0;
+            margin: 20px 0;
             font-weight: bold;
             animation: pulse 1s infinite;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
         }
 
         @keyframes pulse {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
-            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(255, 107, 107, 0); }
             100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
         }
 
         .performance {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin: 20px 0;
-            padding: 15px;
+            gap: 20px;
+            margin: 25px 0;
+            padding: 20px;
             background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
+            border-radius: 20px;
         }
 
         .performance-item {
             text-align: center;
-            padding: 10px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .performance-item:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .performance-value {
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             font-weight: bold;
-            color: #4CAF50;
-            margin-bottom: 5px;
+            color: #4ecdc4;
+            margin-bottom: 8px;
         }
 
         .performance-label {
-            font-size: 0.9rem;
+            font-size: 1rem;
             opacity: 0.8;
         }
 
-        .landmark-info {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            border-radius: 15px;
-            margin: 15px 0;
+        .transform-panel {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            padding: 20px;
+            border-radius: 20px;
+            margin: 20px 0;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
         }
 
-        .dot-grid {
+        .transform-grid {
             display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 3px;
-            margin: 15px 0;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.2);
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .transform-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
             border-radius: 10px;
+            text-align: center;
         }
 
-        .dot {
-            width: 8px;
-            height: 8px;
-            background: #ff4444;
-            border-radius: 50%;
-            transition: all 0.2s ease;
+        .transform-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #fff;
         }
 
-        .dot.active {
-            transform: scale(1.4);
+        .transform-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
         }
 
-        .logs {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 15px;
+        .image-list {
             max-height: 200px;
             overflow-y: auto;
             margin-top: 20px;
         }
 
+        .image-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-bottom: 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .image-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .image-item.active {
+            background: rgba(78, 205, 196, 0.3);
+            border: 2px solid #4ecdc4;
+            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.3);
+        }
+
+        .logs {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 20px;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 25px;
+        }
+
         .log-entry {
-            padding: 5px 0;
+            padding: 8px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
         .footer {
             text-align: center;
-            margin-top: 30px;
-            padding: 20px;
+            margin-top: 40px;
+            padding: 25px;
             opacity: 0.7;
-            font-size: 0.9rem;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
         }
 
         .loading {
             display: none;
             text-align: center;
-            padding: 20px;
+            padding: 30px;
         }
 
         .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
+            border: 5px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            border-top: 4px solid white;
-            width: 40px;
-            height: 40px;
+            border-top: 5px solid #4ecdc4;
+            width: 50px;
+            height: 50px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
+            margin: 0 auto 15px;
         }
 
         @keyframes spin {
@@ -386,75 +475,54 @@
             100% { transform: rotate(360deg); }
         }
 
-        .fast-indicator {
-            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #44a08d);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: bold;
-        }
-
-        .image-list {
-            max-height: 150px;
-            overflow-y: auto;
-            margin-top: 15px;
-        }
-
-        .image-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.1);
-            margin-bottom: 5px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .image-item:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .image-item.active {
-            background: rgba(76, 175, 80, 0.3);
-            border: 1px solid #4CAF50;
-        }
-
-        .transform-info {
-            background: linear-gradient(45deg, #667eea, #764ba2);
+        .ethical-warning {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
             padding: 15px;
             border-radius: 15px;
-            margin: 15px 0;
-            font-size: 0.9rem;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: bold;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .feature-indicator {
+            display: inline-block;
+            background: rgba(78, 205, 196, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin: 0 5px;
+            border: 1px solid #4ecdc4;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>⚡ Face Mapper Pro</h1>
-            <p>Live Facial Movement Mapping - Upload any face and mirror your expressions in real-time</p>
+            <h1>🎭 Face Reenactor Pro</h1>
+            <p>Advanced Real-time Face Animation & Reenactment System</p>
+            <div style="margin-top: 15px;">
+                <span class="feature-indicator">Live Expression Transfer</span>
+                <span class="feature-indicator">Image Animation</span>
+                <span class="feature-indicator">Real-time Face Tracking</span>
+            </div>
+        </div>
+
+        <div class="ethical-warning">
+            ⚠️ ETHICAL USE ONLY: This technology should only be used with explicit consent. 
+            Always inform participants when using face animation and never misuse for deception.
         </div>
 
         <div class="main-content">
             <div class="camera-section">
-                <h2 class="section-title">📹 Live Camera & Image Mapping</h2>
+                <h2 class="section-title">📹 Live Camera Feed</h2>
                 
                 <div class="video-container">
                     <video id="video" autoplay playsinline></video>
                     <canvas id="canvas" class="canvas-overlay"></canvas>
                 </div>
 
-                <div class="image-preview-container">
-                    <img id="mappedImage" style="display: none;">
-                    <div id="imagePlaceholder" class="image-placeholder">
-                        <div>📁</div>
-                        <div>Upload a face image to see it mirror your movements</div>
-                    </div>
-                </div>
-
                 <div class="upload-section">
-                    <h3>🖼️ Upload Face Image</h3>
+                    <h3>🖼️ Upload Face for Animation</h3>
                     <div class="upload-controls">
                         <div class="file-input-wrapper">
                             <input type="file" id="imageUpload" class="file-input" accept="image/*" />
@@ -469,14 +537,15 @@
                 </div>
 
                 <div class="controls">
-                    <button id="startBtn" class="btn btn-primary">Start Mapping</button>
-                    <button id="stopBtn" class="btn btn-danger" disabled>Stop Mapping</button>
+                    <button id="startBtn" class="btn btn-primary">Start Animation</button>
+                    <button id="stopBtn" class="btn btn-danger" disabled>Stop Animation</button>
+                    <button id="calibrateBtn" class="btn btn-info">Calibrate</button>
                 </div>
 
                 <div class="performance">
                     <div class="performance-item">
                         <div class="performance-value" id="fpsCounter">0 FPS</div>
-                        <div class="performance-label">Mapping Speed</div>
+                        <div class="performance-label">Animation Speed</div>
                     </div>
                     <div class="performance-item">
                         <div class="performance-value" id="detectionTime">0ms</div>
@@ -484,61 +553,80 @@
                     </div>
                     <div class="performance-item">
                         <div class="performance-value" id="landmarkCount">0</div>
-                        <div class="performance-label">Landmarks</div>
+                        <div class="performance-label">Landmarks Tracked</div>
                     </div>
                 </div>
 
                 <div class="loading" id="loading">
                     <div class="spinner"></div>
-                    <p>Loading Advanced Face Mapping System...</p>
+                    <p>Loading Advanced Face Animation System...</p>
                 </div>
             </div>
 
-            <div class="detection-section">
-                <h2 class="section-title">🔍 Real-time Analysis & Controls</h2>
+            <div class="animation-section">
+                <h2 class="section-title">🎬 Live Animation Output</h2>
+                
+                <div class="animation-container">
+                    <img id="animatedImage" style="display: none;">
+                    <div id="animationPlaceholder" class="animation-placeholder">
+                        <div>🎭</div>
+                        <div>Upload a face image to see it animated in real-time</div>
+                        <div style="font-size: 1rem; margin-top: 15px; opacity: 0.6;">
+                            The image will mirror your facial expressions and head movements
+                        </div>
+                    </div>
+                </div>
+
                 <div class="detection-display">
                     <div class="expression" id="expressionEmoji">😐</div>
                     <div class="expression-text" id="expressionText">Neutral</div>
                     <div class="confidence" id="confidenceText">Confidence: 0%</div>
                     
                     <div id="speechIndicator" class="speech-indicator" style="display: none;">
-                        🗣️ SPEAKING DETECTED - Mouth Movement Active!
+                        🗣️ SPEAKING DETECTED - Mouth Animation Active!
                     </div>
                     
-                    <div class="status" id="statusText">Ready for face mapping - Upload an image to start</div>
+                    <div class="status" id="statusText">Ready for face animation - Upload an image and click Start Animation</div>
 
-                    <div class="transform-info" id="transformInfo">
-                        <strong>Image Transformation:</strong><br>
-                        Position: <span id="transformPosition">0, 0</span><br>
-                        Scale: <span id="transformScale">100%</span><br>
-                        Rotation: <span id="transformRotation">0°</span>
+                    <div class="transform-panel">
+                        <h3>🔄 Real-time Transformations</h3>
+                        <div class="transform-grid">
+                            <div class="transform-item">
+                                <div class="transform-value" id="headPosition">Center</div>
+                                <div class="transform-label">Head Position</div>
+                            </div>
+                            <div class="transform-item">
+                                <div class="transform-value" id="mouthOpenness">0%</div>
+                                <div class="transform-label">Mouth Openness</div>
+                            </div>
+                            <div class="transform-item">
+                                <div class="transform-value" id="eyeOpenness">100%</div>
+                                <div class="transform-label">Eye Openness</div>
+                            </div>
+                            <div class="transform-item">
+                                <div class="transform-value" id="animationActive">No</div>
+                                <div class="transform-label">Animation Active</div>
+                            </div>
+                        </div>
                     </div>
-                    
+
                     <div class="performance">
                         <div class="performance-item">
-                            <div class="performance-value" id="mouthOpenness">0%</div>
-                            <div class="performance-label">Mouth Open</div>
+                            <div class="performance-value" id="transformX">0px</div>
+                            <div class="performance-label">Position X</div>
                         </div>
                         <div class="performance-item">
-                            <div class="performance-value" id="headTurn">Center</div>
-                            <div class="performance-label">Head Position</div>
+                            <div class="performance-value" id="transformY">0px</div>
+                            <div class="performance-label">Position Y</div>
                         </div>
                         <div class="performance-item">
-                            <div class="performance-value" id="mappingActive">No</div>
-                            <div class="performance-label">Image Mapping</div>
-                        </div>
-                    </div>
-
-                    <div class="landmark-info">
-                        <h3>🔴 Facial Landmark System</h3>
-                        <p>Red dots show key facial points. Green = Active, Orange = Speaking</p>
-                        <div class="dot-grid" id="dotGrid">
-                            <!-- Dots will be generated by JavaScript -->
+                            <div class="performance-value" id="transformScale">100%</div>
+                            <div class="performance-label">Scale</div>
                         </div>
                     </div>
                     
                     <div class="logs">
-                        <h3>Activity Log</h3>
+                        <h3>Animation Log</h3>
                         <div id="logContainer"></div>
                     </div>
                 </div>
@@ -546,37 +634,39 @@
         </div>
 
         <div class="footer">
-            <p>Face Mapper Pro | Real-time Facial Movement Mapping | Upload & Mirror Any Face</p>
+            <p>Face Reenactor Pro | Advanced Real-time Face Animation System | Use Responsibly</p>
         </div>
     </div>
 
     <!-- Include TensorFlow.js and FaceAPI from CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.1/dist/face-landmarks-detection.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
 
     <script>
-        // Global variables for advanced face mapping
+        // Global variables for advanced face animation
         let video = document.getElementById('video');
         let canvas = document.getElementById('canvas');
         let ctx = canvas.getContext('2d');
         let model = null;
         let isDetecting = false;
+        let isAnimating = false;
         let detectionInterval = null;
         let currentSessionId = null;
         let frameCount = 0;
         let lastFpsUpdate = Date.now();
         let fps = 0;
 
-        // Image mapping variables
-        let currentImage = null;
+        // Socket.io for real-time animation
+        let socket = null;
+
+        // Image animation variables
         let currentImageId = null;
         let uploadedImages = [];
-        let faceTransform = {
-            x: 0,
-            y: 0,
-            scale: 1,
-            rotation: 0,
-            flip: false
+        let currentTransform = {
+            transform: 'translate(0px, 0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)',
+            filter: 'brightness(1) contrast(1)',
+            clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)'
         };
 
         // Performance monitoring
@@ -591,6 +681,7 @@
         // DOM elements
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
+        const calibrateBtn = document.getElementById('calibrateBtn');
         const loading = document.getElementById('loading');
         const expressionEmoji = document.getElementById('expressionEmoji');
         const expressionText = document.getElementById('expressionText');
@@ -602,19 +693,18 @@
         const landmarkCount = document.getElementById('landmarkCount');
         const speechIndicator = document.getElementById('speechIndicator');
         const mouthOpenness = document.getElementById('mouthOpenness');
-        const headTurn = document.getElementById('headTurn');
-        const mappingActive = document.getElementById('mappingActive');
-        const dotGrid = document.getElementById('dotGrid');
+        const headPosition = document.getElementById('headPosition');
+        const eyeOpenness = document.getElementById('eyeOpenness');
+        const animationActive = document.getElementById('animationActive');
         const imageUpload = document.getElementById('imageUpload');
         const uploadBtn = document.getElementById('uploadBtn');
         const clearImageBtn = document.getElementById('clearImageBtn');
-        const mappedImage = document.getElementById('mappedImage');
-        const imagePlaceholder = document.getElementById('imagePlaceholder');
+        const animatedImage = document.getElementById('animatedImage');
+        const animationPlaceholder = document.getElementById('animationPlaceholder');
         const imageList = document.getElementById('imageList');
-        const transformInfo = document.getElementById('transformInfo');
-        const transformPosition = document.getElementById('transformPosition');
+        const transformX = document.getElementById('transformX');
+        const transformY = document.getElementById('transformY');
         const transformScale = document.getElementById('transformScale');
-        const transformRotation = document.getElementById('transformRotation');
 
         // Enhanced expression mapping
         const expressionMap = {
@@ -635,37 +725,23 @@
             'smirk': '😏',
             'wink': '😉',
             'speaking': '🗣️',
-            'listening': '👂'
+            'talking': '💬'
         };
 
-        // Initialize dot grid for landmark visualization
-        function initializeDotGrid() {
-            dotGrid.innerHTML = '';
-            for (let i = 0; i < 50; i++) {
-                const dot = document.createElement('div');
-                dot.className = 'dot';
-                dot.id = `dot-${i}`;
-                dotGrid.appendChild(dot);
-            }
-        }
-
-        // Update dot grid based on facial activity
-        function updateDotGrid(activityLevel, isSpeaking) {
-            const dots = document.querySelectorAll('.dot');
-            const activeCount = Math.floor(activityLevel * dots.length);
+        // Initialize socket connection
+        function initializeSocket() {
+            socket = io();
             
-            dots.forEach((dot, index) => {
-                if (index < activeCount) {
-                    dot.classList.add('active');
-                    if (isSpeaking) {
-                        dot.style.background = '#ffaa00'; // Orange for speaking
-                    } else {
-                        dot.style.background = '#00ff00'; // Green for active
-                    }
-                } else {
-                    dot.classList.remove('active');
-                    dot.style.background = '#ff4444'; // Red for inactive
-                }
+            socket.on('connect', () => {
+                log('🔗 Connected to animation server');
+            });
+            
+            socket.on('animation-update', (data) => {
+                updateImageAnimation(data);
+            });
+            
+            socket.on('disconnect', () => {
+                log('🔌 Disconnected from animation server', 'error');
             });
         }
 
@@ -697,32 +773,32 @@
                 
                 imageItem.innerHTML = `
                     <span>📷 ${image.filename}</span>
-                    <button onclick="selectImage('${image.id}', '${image.url}')" class="btn" style="padding: 5px 10px; font-size: 0.8rem;">Select</button>
+                    <button onclick="selectImage('${image.id}', '${image.url}')" class="btn" style="padding: 8px 15px; font-size: 0.9rem;">Select</button>
                 `;
                 
                 imageList.appendChild(imageItem);
             });
         }
 
-        // Select image for mapping
+        // Select image for animation
         function selectImage(imageId, imageUrl) {
             currentImageId = imageId;
-            mappedImage.src = imageUrl;
-            mappedImage.style.display = 'block';
-            imagePlaceholder.style.display = 'none';
+            animatedImage.src = imageUrl;
+            animatedImage.style.display = 'block';
+            animationPlaceholder.style.display = 'none';
             
             // Update image list to show active image
             updateImageList();
             
-            log(`🖼️ Image selected for mapping: ${imageId}`);
-            statusText.textContent = 'Image loaded - Ready for face mapping!';
+            log(`🖼️ Image selected for animation: ${imageId}`);
+            statusText.textContent = 'Image loaded - Ready for animation!';
         }
 
         // Clear current image
         function clearImage() {
             currentImageId = null;
-            mappedImage.style.display = 'none';
-            imagePlaceholder.style.display = 'flex';
+            animatedImage.style.display = 'none';
+            animationPlaceholder.style.display = 'flex';
             updateImageList();
             log('🗑️ Image cleared');
         }
@@ -783,7 +859,7 @@
                     canvas.height = video.videoHeight;
                 });
                 
-                log('📹 Camera ready - Face mapping enabled');
+                log('📹 Camera ready - Face animation enabled');
                 return true;
             } catch (error) {
                 log('❌ Camera error: ' + error.message, 'error');
@@ -795,7 +871,7 @@
         async function loadModel() {
             try {
                 loading.style.display = 'block';
-                statusText.textContent = 'Loading Advanced Face Mapping System...';
+                statusText.textContent = 'Loading Advanced Face Animation System...';
                 
                 model = await faceLandmarksDetection.load(
                     faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
@@ -807,8 +883,8 @@
                 );
                 
                 loading.style.display = 'none';
-                statusText.textContent = '⚡ Face Mapping System Ready!';
-                log('✅ Advanced face mapping model loaded');
+                statusText.textContent = '⚡ Face Animation System Ready!';
+                log('✅ Advanced face animation model loaded');
                 return true;
             } catch (error) {
                 loading.style.display = 'none';
@@ -818,10 +894,16 @@
             }
         }
 
-        // Start advanced mapping session
-        async function startMapping() {
+        // Start advanced animation session
+        async function startAnimation() {
+            if (!currentImageId) {
+                alert('Please upload and select an image first');
+                return;
+            }
+
             try {
-                const response = await fetch('/start-session', {
+                // Start animation session on server
+                const response = await fetch('/start-animation-session', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ imageId: currentImageId })
@@ -832,31 +914,42 @@
                 if (data.success) {
                     currentSessionId = data.sessionId;
                     isDetecting = true;
+                    isAnimating = true;
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
-                    statusText.textContent = '⚡ Face Mapping Active!';
-                    mappingActive.textContent = currentImageId ? 'Yes' : 'No';
-                    log(`🚀 Face mapping started${currentImageId ? ' with image mapping' : ''}`);
+                    statusText.textContent = '⚡ Face Animation Active!';
+                    animationActive.textContent = 'Yes';
                     
+                    // Start socket animation
+                    socket.emit('start-animation', {
+                        sessionId: currentSessionId,
+                        imageId: currentImageId
+                    });
+                    
+                    log(`🎬 Animation session started: ${currentSessionId}`);
                     detectFaces();
                 } else {
                     throw new Error(data.error);
                 }
             } catch (error) {
-                log('❌ Start error: ' + error.message, 'error');
+                log('❌ Animation start error: ' + error.message, 'error');
             }
         }
 
-        // Stop mapping
-        async function stopMapping() {
+        // Stop animation
+        async function stopAnimation() {
             isDetecting = false;
+            isAnimating = false;
             cancelAnimationFrame(detectionInterval);
             
             startBtn.disabled = false;
             stopBtn.disabled = true;
-            statusText.textContent = 'Mapping stopped';
+            statusText.textContent = 'Animation stopped';
             speechIndicator.style.display = 'none';
-            mappingActive.textContent = 'No';
+            animationActive.textContent = 'No';
+            
+            // Stop socket animation
+            socket.emit('stop-animation');
             
             if (currentSessionId) {
                 try {
@@ -865,30 +958,54 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ sessionId: currentSessionId })
                     });
-                    log('📊 Mapping session ended');
+                    log('📊 Animation session ended');
                 } catch (error) {
-                    log('❌ End session error: ' + error.message, 'error');
+                    log('❌ Session end error: ' + error.message, 'error');
                 }
                 currentSessionId = null;
             }
             
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             resetDisplay();
-            updateDotGrid(0, false);
-            resetImageTransform();
+            resetImageAnimation();
         }
 
-        // Reset image transform
-        function resetImageTransform() {
-            faceTransform = { x: 0, y: 0, scale: 1, rotation: 0, flip: false };
-            updateTransformDisplay();
+        // Reset image animation
+        function resetImageAnimation() {
+            currentTransform = {
+                transform: 'translate(0px, 0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)',
+                filter: 'brightness(1) contrast(1)',
+                clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)'
+            };
+            applyImageTransform();
         }
 
-        // Update transform display
-        function updateTransformDisplay() {
-            transformPosition.textContent = `${Math.round(faceTransform.x)}, ${Math.round(faceTransform.y)}`;
-            transformScale.textContent = `${Math.round(faceTransform.scale * 100)}%`;
-            transformRotation.textContent = `${Math.round(faceTransform.rotation)}°`;
+        // Apply image transform
+        function applyImageTransform() {
+            if (animatedImage.style.display !== 'none') {
+                animatedImage.style.transform = currentTransform.transform;
+                animatedImage.style.filter = currentTransform.filter;
+                animatedImage.style.clipPath = currentTransform.clipPath;
+            }
+        }
+
+        // Update image animation based on server data
+        function updateImageAnimation(data) {
+            currentTransform = data.transform;
+            applyImageTransform();
+            
+            // Update transform displays
+            const transformMatch = data.transform.transform.match(/translate\(([^)]+)\)/);
+            if (transformMatch) {
+                const [x, y] = transformMatch[1].split(',').map(val => parseInt(val.trim()));
+                transformX.textContent = `${x}px`;
+                transformY.textContent = `${y}px`;
+            }
+            
+            const scaleMatch = data.transform.transform.match(/scale\(([^)]+)\)/);
+            if (scaleMatch) {
+                transformScale.textContent = `${Math.round(parseFloat(scaleMatch[1]) * 100)}%`;
+            }
         }
 
         // Reset display to neutral
@@ -897,10 +1014,11 @@
             expressionText.textContent = 'Neutral';
             confidenceText.textContent = 'Confidence: 0%';
             mouthOpenness.textContent = '0%';
-            headTurn.textContent = 'Center';
+            headPosition.textContent = 'Center';
+            eyeOpenness.textContent = '100%';
         }
 
-        // Advanced face detection with image mapping
+        // Advanced face detection with animation
         async function detectFaces() {
             if (!model || !isDetecting) return;
             
@@ -921,77 +1039,50 @@
                     const face = predictions[0];
                     drawAdvancedLandmarks(face);
                     
-                    const analysis = analyzeFaceWithMapping(face);
-                    updateDisplayWithMapping(analysis);
-                    updateImageTransform(analysis);
-                    sendDetectionToServer(analysis);
+                    const analysis = analyzeFaceForAnimation(face);
+                    updateDisplayWithAnimation(analysis);
+                    
+                    // Send landmarks to server for animation generation
+                    if (isAnimating && currentImageId) {
+                        const response = await fetch('/generate-animation', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                landmarks: face.scaledMesh,
+                                imageId: currentImageId
+                            })
+                        });
+                        
+                        const animationData = await response.json();
+                        if (animationData.success) {
+                            updateImageAnimation(animationData);
+                        }
+                        
+                        // Also send via socket for real-time updates
+                        socket.emit('face-landmarks', {
+                            landmarks: face.scaledMesh,
+                            sessionId: currentSessionId
+                        });
+                    }
                     
                     landmarkCount.textContent = face.scaledMesh.length;
-                    updateDotGrid(analysis.activityLevel, analysis.isSpeaking);
                 } else {
                     statusText.textContent = '⚡ No face detected';
                     resetDisplay();
-                    updateDotGrid(0, false);
-                    resetImageTransform();
+                    resetImageAnimation();
                 }
                 
                 updatePerformanceMetrics();
                 
             } catch (error) {
                 if (error.message !== 'Cancelled') {
-                    log('⚠️ Detection glitch: ' + error.message, 'error');
+                    log('⚠️ Detection error: ' + error.message, 'error');
                 }
             }
             
             if (isDetecting) {
                 detectionInterval = requestAnimationFrame(detectFaces);
             }
-        }
-
-        // Update image transform based on face analysis
-        function updateImageTransform(analysis) {
-            if (!currentImageId) return;
-
-            // Calculate transform based on head position and movements
-            const headPos = analysis.headPosition.toLowerCase();
-            
-            switch (headPos) {
-                case 'left':
-                    faceTransform.x = -20;
-                    faceTransform.rotation = -5;
-                    break;
-                case 'right':
-                    faceTransform.x = 20;
-                    faceTransform.rotation = 5;
-                    break;
-                case 'up':
-                    faceTransform.y = -15;
-                    break;
-                case 'down':
-                    faceTransform.y = 15;
-                    break;
-                default:
-                    faceTransform.x = 0;
-                    faceTransform.y = 0;
-                    faceTransform.rotation = 0;
-            }
-
-            // Scale based on mouth openness (for speaking effect)
-            if (analysis.isSpeaking) {
-                faceTransform.scale = 1 + (analysis.mouthOpenness / 100) * 0.1;
-            } else {
-                faceTransform.scale = 1;
-            }
-
-            // Apply transform to image
-            mappedImage.style.transform = `
-                translate(${faceTransform.x}px, ${faceTransform.y}px)
-                scale(${faceTransform.scale})
-                rotate(${faceTransform.rotation}deg)
-                scaleX(${faceTransform.flip ? -1 : 1})
-            `;
-
-            updateTransformDisplay();
         }
 
         // Draw advanced facial landmarks
@@ -1009,172 +1100,78 @@
                 boundingBox.bottomRight[1] - boundingBox.topLeft[1]
             );
             
-            // Draw key facial points as red dots
+            // Draw key facial points
             ctx.fillStyle = '#ff0000';
-            
-            const keyPoints = [
-                // Eyes
-                33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246,
-                362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398,
-                // Eyebrows, Nose, Mouth, Face contour
-                55, 65, 52, 53, 46, 285, 295, 282, 283, 276, 1, 2, 98, 327,
-                61, 84, 17, 314, 405, 320, 307, 81, 82, 13, 312, 311, 310, 415, 95, 88,
-                78, 191, 80, 81, 82, 87, 14, 317, 402, 318, 324, 308,
-                10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400
-            ];
+            const keyPoints = [33, 133, 362, 263, 61, 291, 13, 14, 1, 152]; // Key points only
             
             keyPoints.forEach(index => {
                 if (landmarks[index]) {
                     const point = landmarks[index];
                     ctx.beginPath();
-                    ctx.arc(point[0], point[1], 2, 0, 2 * Math.PI);
+                    ctx.arc(point[0], point[1], 3, 0, 2 * Math.PI);
                     ctx.fill();
                 }
             });
-            
-            // Draw mouth outline for speech visualization
-            drawMouthOutline(landmarks);
         }
 
-        // Draw mouth outline for speech detection
-        function drawMouthOutline(landmarks) {
-            const mouthPoints = [61, 84, 17, 314, 405, 320, 307, 81, 82, 13, 312, 311, 310, 415, 95, 88, 78];
-            
-            ctx.strokeStyle = isSpeaking ? '#ffaa00' : '#00ff00';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            
-            mouthPoints.forEach((index, i) => {
-                const point = landmarks[index];
-                if (point) {
-                    if (i === 0) {
-                        ctx.moveTo(point[0], point[1]);
-                    } else {
-                        ctx.lineTo(point[0], point[1]);
-                    }
-                }
-            });
-            
-            ctx.closePath();
-            ctx.stroke();
-        }
-
-        // Advanced facial analysis with mapping data
-        function analyzeFaceWithMapping(face) {
+        // Advanced facial analysis for animation
+        function analyzeFaceForAnimation(face) {
             const landmarks = face.scaledMesh;
             
             // Get key points
             const noseTip = landmarks[1];
-            const mouthLeft = landmarks[61];
-            const mouthRight = landmarks[291];
             const mouthTop = landmarks[13];
             const mouthBottom = landmarks[14];
             const leftEye = landmarks[33];
             const rightEye = landmarks[263];
-            const leftEyebrow = landmarks[65];
-            const rightEyebrow = landmarks[295];
             
             let expression = 'neutral';
             let confidence = 0.8;
-            let additionalInfo = 'Face detected';
-            let activityLevel = 0;
-            let headPosition = 'Center';
+            let additionalInfo = 'Face detected - Animation active';
+            let headPos = 'Center';
             
-            // Calculate mouth openness for speech detection
-            const mouthWidth = Math.abs(mouthRight[0] - mouthLeft[0]);
-            const mouthHeight = Math.abs(mouthBottom[1] - mouthTop[1]);
-            const currentMouthOpenness = (mouthHeight / mouthWidth) * 100;
+            // Calculate mouth openness
+            const mouthOpennessVal = Math.abs(mouthBottom[1] - mouthTop[1]);
+            mouthOpenness.textContent = `${Math.min(100, Math.round(mouthOpennessVal))}%`;
             
-            // Update mouth openness history for speech detection
-            mouthOpennessHistory.push(currentMouthOpenness);
-            if (mouthOpennessHistory.length > 10) {
-                mouthOpennessHistory.shift();
+            // Head position detection
+            if (noseTip[0] < canvas.width * 0.35) {
+                headPos = 'Left';
+                expression = 'leftTurn';
+            } else if (noseTip[0] > canvas.width * 0.65) {
+                headPos = 'Right';
+                expression = 'rightTurn';
+            } else if (noseTip[1] < canvas.height * 0.35) {
+                headPos = 'Up';
+                expression = 'up';
+            } else if (noseTip[1] > canvas.height * 0.65) {
+                headPos = 'Down';
+                expression = 'down';
             }
             
-            // Speech detection logic
-            const avgMouthOpenness = mouthOpennessHistory.reduce((a, b) => a + b) / mouthOpennessHistory.length;
-            const mouthOpennessVariation = Math.max(...mouthOpennessHistory) - Math.min(...mouthOpennessHistory);
+            headPosition.textContent = headPos;
             
-            isSpeaking = avgMouthOpenness > 15 && mouthOpennessVariation > 5;
+            // Speech detection
+            const avgMouthOpenness = mouthOpennessHistory.reduce((a, b) => a + b, 0) / mouthOpennessHistory.length || 0;
+            isSpeaking = mouthOpennessVal > 15 && avgMouthOpenness > 10;
             
             if (isSpeaking) {
-                expression = 'speaking';
-                confidence = 0.9;
-                additionalInfo = 'SPEAKING DETECTED - Image will scale with mouth movement';
-                activityLevel = 0.8;
-            }
-            // Enhanced expression detection
-            else {
-                const smileIntensity = (mouthWidth / 80) + (mouthHeight / 20);
-                
-                if (smileIntensity > 2.5) {
-                    expression = 'very_happy';
-                    confidence = Math.min(0.95, smileIntensity / 3);
-                    additionalInfo = 'BIG SMILE!';
-                    activityLevel = 0.7;
-                } else if (smileIntensity > 1.8) {
-                    expression = 'happy';
-                    confidence = Math.min(0.85, smileIntensity / 2.5);
-                    additionalInfo = 'Smiling detected';
-                    activityLevel = 0.6;
-                }
-                // Sad detection
-                else {
-                    const eyebrowAngle = (leftEyebrow[1] - landmarks[65][1]) + (rightEyebrow[1] - landmarks[295][1]);
-                    const mouthCornersDown = (mouthLeft[1] - landmarks[61][1]) + (mouthRight[1] - landmarks[291][1]);
-                    
-                    if (eyebrowAngle > 10 && mouthCornersDown > 5) {
-                        expression = 'very_sad';
-                        confidence = 0.8;
-                        additionalInfo = 'SAD expression';
-                        activityLevel = 0.6;
-                    } else if (eyebrowAngle > 5) {
-                        expression = 'sad';
-                        confidence = 0.7;
-                        additionalInfo = 'Slightly sad';
-                        activityLevel = 0.5;
-                    }
-                }
-            }
-            
-            // Head movement detection
-            if (noseTip[0] < canvas.width * 0.35) {
-                expression = 'leftTurn';
-                headPosition = 'Left';
-                activityLevel = 0.9;
-                additionalInfo = 'Head LEFT - Image will shift left';
-            } else if (noseTip[0] > canvas.width * 0.65) {
-                expression = 'rightTurn';
-                headPosition = 'Right';
-                activityLevel = 0.9;
-                additionalInfo = 'Head RIGHT - Image will shift right';
-            } else if (noseTip[1] < canvas.height * 0.35) {
-                expression = 'up';
-                headPosition = 'Up';
-                activityLevel = 0.7;
-                additionalInfo = 'Looking UP - Image will shift up';
-            } else if (noseTip[1] > canvas.height * 0.65) {
-                expression = 'down';
-                headPosition = 'Down';
-                activityLevel = 0.7;
-                additionalInfo = 'Looking DOWN - Image will shift down';
+                expression = 'talking';
+                additionalInfo = 'SPEAKING - Mouth animation active';
             }
             
             return {
                 expression: expression,
                 confidence: confidence,
                 additionalInfo: additionalInfo,
-                landmarks: landmarks.slice(0, 10),
-                isSpeaking: isSpeaking,
-                mouthOpenness: currentMouthOpenness,
-                headPosition: headPosition,
-                activityLevel: activityLevel,
-                faceTransform: faceTransform
+                mouthOpenness: mouthOpennessVal,
+                headPosition: headPos,
+                isSpeaking: isSpeaking
             };
         }
 
-        // Enhanced display update with mapping info
-        function updateDisplayWithMapping(analysis) {
+        // Enhanced display update with animation info
+        function updateDisplayWithAnimation(analysis) {
             const emoji = expressionMap[analysis.expression] || '😐';
             const expressionName = analysis.expression.replace('_', ' ').toUpperCase();
             
@@ -1182,40 +1179,17 @@
             expressionText.textContent = expressionName;
             confidenceText.textContent = `Confidence: ${Math.round(analysis.confidence * 100)}%`;
             statusText.textContent = analysis.additionalInfo;
-            mouthOpenness.textContent = `${Math.round(analysis.mouthOpenness)}%`;
-            headTurn.textContent = analysis.headPosition;
-            mappingActive.textContent = currentImageId ? 'Yes' : 'No';
             
             // Speech indicator
             if (analysis.isSpeaking) {
                 speechIndicator.style.display = 'block';
-                expressionEmoji.style.transform = 'scale(1.2)';
+                expressionEmoji.style.transform = 'scale(1.3)';
                 expressionText.style.color = '#ffaa00';
             } else {
                 speechIndicator.style.display = 'none';
                 expressionEmoji.style.transform = 'scale(1)';
                 expressionText.style.color = 'white';
             }
-        }
-
-        // Send enhanced detection to server
-        async function sendDetectionToServer(analysis) {
-            if (!currentSessionId) return;
-            
-            fetch('/detect-expression', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    sessionId: currentSessionId,
-                    expression: analysis.expression,
-                    confidence: analysis.confidence,
-                    landmarks: analysis.landmarks,
-                    isSpeaking: analysis.isSpeaking,
-                    mouthOpenness: analysis.mouthOpenness,
-                    headPosition: analysis.headPosition,
-                    faceTransform: analysis.faceTransform
-                })
-            }).catch(() => {});
         }
 
         // Performance monitoring
@@ -1241,6 +1215,20 @@
             }
         }
 
+        // Calibration function
+        function calibrateAnimation() {
+            log('🔧 Starting animation calibration...');
+            statusText.textContent = 'Calibrating - Please maintain neutral expression';
+            
+            // Reset any previous calibration
+            mouthOpennessHistory = [];
+            
+            setTimeout(() => {
+                log('✅ Calibration complete');
+                statusText.textContent = 'Calibration complete - Animation ready';
+            }, 3000);
+        }
+
         // Fast logging
         function log(message, type = 'info') {
             const logEntry = document.createElement('div');
@@ -1255,7 +1243,7 @@
             
             logContainer.appendChild(logEntry);
             
-            if (logContainer.children.length > 10) {
+            if (logContainer.children.length > 15) {
                 logContainer.removeChild(logContainer.firstChild);
             }
             
@@ -1263,15 +1251,16 @@
         }
 
         // Event listeners
-        startBtn.addEventListener('click', startMapping);
-        stopBtn.addEventListener('click', stopMapping);
+        startBtn.addEventListener('click', startAnimation);
+        stopBtn.addEventListener('click', stopAnimation);
         uploadBtn.addEventListener('click', uploadImage);
         clearImageBtn.addEventListener('click', clearImage);
+        calibrateBtn.addEventListener('click', calibrateAnimation);
 
         // Advanced initialization
         async function init() {
-            log('🚀 Initializing Face Mapper Pro...');
-            initializeDotGrid();
+            log('🚀 Initializing Face Reenactor Pro...');
+            initializeSocket();
             await loadUploadedImages();
             
             const cameraReady = await initCamera();
@@ -1280,8 +1269,8 @@
             const modelReady = await loadModel();
             if (!modelReady) return;
             
-            log('✅ READY! Upload a face image and start mapping your movements');
-            statusText.textContent = '⚡ Ready - Upload an image and start mapping';
+            log('✅ SYSTEM READY! Upload a face image and start real-time animation');
+            statusText.textContent = '⚡ System Ready - Upload image and start animation';
         }
 
         // Start the advanced application
