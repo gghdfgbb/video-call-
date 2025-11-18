@@ -31,7 +31,7 @@ function getShortDomainName() {
 }
 
 const SHORT_DOMAIN = getShortDomainName();
-console.log(`🚀 Face Detector Domain: ${SHORT_DOMAIN}`);
+console.log(`🚀 Ultra-Fast Face Detector Domain: ${SHORT_DOMAIN}`);
 
 // Middleware
 app.use(cors());
@@ -87,7 +87,7 @@ async function getDropboxAccessToken() {
             }),
             {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                timeout: 15000
+                timeout: 10000  // Reduced timeout for faster initialization
             }
         );
 
@@ -104,9 +104,9 @@ async function selfPing() {
     
     try {
         const pingUrl = `${RENDER_DOMAIN}/ping`;
-        const response = await axios.get(pingUrl, { timeout: 10000 });
+        const response = await axios.get(pingUrl, { timeout: 5000 }); // Faster timeout
         
-        console.log(`💓 Self-ping successful: ${response.data.status} at ${new Date().toISOString()}`);
+        console.log(`💓 Self-ping successful: ${response.data.status}`);
     } catch (error) {
         console.warn(`⚠️ Self-ping failed: ${error.message}`);
     }
@@ -120,24 +120,23 @@ function startAutoPing() {
 
     console.log('🔄 Starting auto-ping system (every 5 minutes)');
     
-    setTimeout(selfPing, 30000);
+    setTimeout(selfPing, 10000); // Faster initial ping
     setInterval(selfPing, 5 * 60 * 1000);
 }
 
-// ==================== FACE DETECTION ROUTES ====================
+// ==================== OPTIMIZED FACE DETECTION ROUTES ====================
 
-// Serve main page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// API endpoint to start face detection session
+// Optimized session start
 app.post('/start-session', (req, res) => {
     try {
         const sessionId = `session_${String(sessionCounter++).padStart(3, '0')}`;
         const sessionData = {
             sessionId: sessionId,
-            startTime: new Date().toISOString(),
+            startTime: Date.now(), // Use timestamp for faster processing
             lastActivity: Date.now(),
             expressions: [],
             status: 'active'
@@ -145,12 +144,12 @@ app.post('/start-session', (req, res) => {
         
         faceSessions.set(sessionId, sessionData);
         
-        console.log(`🎭 New face detection session started: ${sessionId}`);
+        console.log(`🎭 New ULTRA-FAST face detection session: ${sessionId}`);
         
         res.json({
             success: true,
             sessionId: sessionId,
-            message: 'Face detection session started',
+            message: 'Ultra-fast face detection started',
             timestamp: sessionData.startTime
         });
         
@@ -163,7 +162,7 @@ app.post('/start-session', (req, res) => {
     }
 });
 
-// API endpoint to log facial expressions
+// Optimized expression detection endpoint
 app.post('/detect-expression', (req, res) => {
     try {
         const { sessionId, expression, confidence, landmarks } = req.body;
@@ -175,15 +174,16 @@ app.post('/detect-expression', (req, res) => {
             });
         }
 
-        if (!faceSessions.has(sessionId)) {
+        const session = faceSessions.get(sessionId);
+        if (!session) {
             return res.status(404).json({
                 success: false,
                 error: 'Session not found'
             });
         }
 
-        const session = faceSessions.get(sessionId);
-        const detectionTime = new Date().toISOString();
+        // Fast timestamp
+        const detectionTime = Date.now();
         
         const expressionData = {
             expression: expression,
@@ -193,10 +193,9 @@ app.post('/detect-expression', (req, res) => {
         };
         
         session.expressions.push(expressionData);
-        session.lastActivity = Date.now();
+        session.lastActivity = detectionTime;
         
-        console.log(`😊 Expression detected: ${expression} (${confidence}%) in session ${sessionId}`);
-        
+        // Fast response without waiting for processing
         res.json({
             success: true,
             expression: expression,
@@ -214,27 +213,26 @@ app.post('/detect-expression', (req, res) => {
     }
 });
 
-// Get session data
+// Get session data (optimized)
 app.get('/session/:sessionId', (req, res) => {
     try {
         const { sessionId } = req.params;
+        const session = faceSessions.get(sessionId);
         
-        if (!faceSessions.has(sessionId)) {
+        if (!session) {
             return res.status(404).json({
                 success: false,
                 error: 'Session not found'
             });
         }
 
-        const session = faceSessions.get(sessionId);
-        
         res.json({
             success: true,
             sessionId: sessionId,
             startTime: session.startTime,
             lastActivity: session.lastActivity,
             totalExpressions: session.expressions.length,
-            expressions: session.expressions.slice(-10), // Last 10 expressions
+            expressions: session.expressions.slice(-5), // Only last 5 for speed
             status: session.status
         });
         
@@ -247,21 +245,21 @@ app.get('/session/:sessionId', (req, res) => {
     }
 });
 
-// End session
+// Optimized session end
 app.post('/end-session', (req, res) => {
     try {
         const { sessionId } = req.body;
+        const session = faceSessions.get(sessionId);
         
-        if (!sessionId || !faceSessions.has(sessionId)) {
+        if (!session) {
             return res.status(404).json({
                 success: false,
                 error: 'Session not found'
             });
         }
 
-        const session = faceSessions.get(sessionId);
         session.status = 'ended';
-        session.endTime = new Date().toISOString();
+        session.endTime = Date.now();
         
         console.log(`📊 Session ${sessionId} ended with ${session.expressions.length} expressions`);
         
@@ -271,7 +269,7 @@ app.post('/end-session', (req, res) => {
             totalExpressions: session.expressions.length,
             startTime: session.startTime,
             endTime: session.endTime,
-            duration: Date.now() - new Date(session.startTime).getTime()
+            duration: session.endTime - session.startTime
         });
         
     } catch (error) {
@@ -283,69 +281,70 @@ app.post('/end-session', (req, res) => {
     }
 });
 
-// Ping endpoint for auto-ping
+// Fast ping endpoint
 app.get('/ping', (req, res) => {
     res.json({
         status: 'pong',
-        server: 'face-detector',
+        server: 'ultra-fast-face-detector',
         domain: SHORT_DOMAIN,
-        activeSessions: faceSessions.size,
-        time: new Date().toISOString()
+        activeSessions: Array.from(faceSessions.values()).filter(s => s.status === 'active').length,
+        time: Date.now()
     });
 });
 
-// Server status
+// Optimized server status
 app.get('/status', (req, res) => {
     const activeSessions = Array.from(faceSessions.values()).filter(s => s.status === 'active').length;
     
     res.json({
-        status: '✅ Face Detector Server Running',
+        status: '⚡ Ultra-Fast Face Detector Running',
         domain: SHORT_DOMAIN,
         activeSessions: activeSessions,
         totalSessions: faceSessions.size,
         render: IS_RENDER,
         serverUptime: Math.floor(process.uptime()),
-        timestamp: new Date().toISOString()
+        timestamp: Date.now()
     });
 });
 
-// Cleanup inactive sessions (runs every 10 minutes)
+// Faster cleanup (every 5 minutes)
 function cleanupInactiveSessions() {
     const now = Date.now();
-    const inactiveThreshold = 30 * 60 * 1000; // 30 minutes
+    const inactiveThreshold = 15 * 60 * 1000; // 15 minutes (reduced)
     
     let cleaned = 0;
     for (const [sessionId, session] of faceSessions.entries()) {
         if (now - session.lastActivity > inactiveThreshold && session.status === 'active') {
             session.status = 'timeout';
-            session.endTime = new Date().toISOString();
+            session.endTime = now;
             cleaned++;
-            console.log(`🧹 Cleaned inactive session: ${sessionId}`);
         }
     }
     
     if (cleaned > 0) {
-        console.log(`📊 Session cleanup: ${cleaned} inactive sessions marked as timeout`);
+        console.log(`🧹 Fast cleanup: ${cleaned} inactive sessions`);
     }
 }
 
-// Start cleanup interval
-setInterval(cleanupInactiveSessions, 10 * 60 * 1000);
+// Faster cleanup interval
+setInterval(cleanupInactiveSessions, 5 * 60 * 1000);
 
 // ==================== SERVER STARTUP ====================
 
 app.listen(PORT, '0.0.0.0', async () => {
-    console.log(`🚀 Phistar Face Detector running on port ${PORT}`);
+    console.log(`⚡ ULTRA-FAST Phistar Face Detector running on port ${PORT}`);
     console.log(`🌐 Domain: ${SHORT_DOMAIN}`);
     console.log(`🏠 Render: ${IS_RENDER}`);
-    console.log(`🎭 Face Detection: Ready`);
+    console.log(`🎭 Face Detection: ULTRA-FAST MODE`);
     
-    // Initialize Dropbox
-    await initializeDropbox();
+    // Initialize Dropbox in background (non-blocking)
+    initializeDropbox().then(() => {
+        console.log('✅ Dropbox ready for fast sessions');
+    });
     
     // Start auto-ping
     startAutoPing();
     
-    console.log(`✅ Server initialized successfully`);
-    console.log(`🔗 Access the face detector at: ${RENDER_DOMAIN}`);
+    console.log(`✅ Server initialized - ULTRA FAST DETECTION READY`);
+    console.log(`🔗 Access at: ${RENDER_DOMAIN}`);
 });
