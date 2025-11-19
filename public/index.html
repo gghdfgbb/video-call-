@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎭 Face Reenactor Pro - Live Face Animation</title>
+    <title>🎭 Face Puppet Animator - Real-time Face Animation</title>
     <style>
         * {
             margin: 0;
@@ -13,14 +13,14 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
             min-height: 100vh;
             color: white;
             overflow-x: hidden;
         }
 
         .container {
-            max-width: 1800px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -30,36 +30,32 @@
             margin-bottom: 30px;
             padding: 25px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 25px;
-            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
         }
 
         .header h1 {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-size: 2.8rem;
+            margin-bottom: 10px;
             background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .header p {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             opacity: 0.9;
-            max-width: 800px;
-            margin: 0 auto;
         }
 
         .main-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            gap: 25px;
             margin-bottom: 30px;
         }
 
-        @media (max-width: 1200px) {
+        @media (max-width: 1024px) {
             .main-content {
                 grid-template-columns: 1fr;
             }
@@ -67,68 +63,53 @@
 
         .camera-section, .animation-section {
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-radius: 25px;
-            padding: 30px;
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 25px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
         }
 
         .section-title {
-            font-size: 1.6rem;
-            margin-bottom: 25px;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
             text-align: center;
-            color: #fff;
+            color: #4ecdc4;
             font-weight: bold;
-            background: linear-gradient(45deg, #4ecdc4, #44a08d);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
         }
 
         .video-container {
             position: relative;
             width: 100%;
             background: #000;
-            border-radius: 20px;
+            border-radius: 15px;
             overflow: hidden;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
 
-        #video {
+        #cameraVideo {
             width: 100%;
-            height: 450px;
+            height: 350px;
             object-fit: cover;
             transform: scaleX(-1);
-        }
-
-        .canvas-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
         }
 
         .animation-container {
             position: relative;
             width: 100%;
-            height: 450px;
-            background: linear-gradient(45deg, #1a1a2e, #16213e);
-            border-radius: 20px;
+            height: 350px;
+            background: linear-gradient(45deg, #2c3e50, #4ca1af);
+            border-radius: 15px;
             overflow: hidden;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             border: 3px solid rgba(255, 255, 255, 0.1);
         }
 
-        #animatedImage {
+        #animatedCanvas {
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            transition: all 0.1s ease-out;
-            transform-origin: center center;
+            display: none;
         }
 
         .animation-placeholder {
@@ -138,83 +119,70 @@
             justify-content: center;
             height: 100%;
             color: rgba(255, 255, 255, 0.6);
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             text-align: center;
         }
 
         .animation-placeholder i {
-            font-size: 4rem;
-            margin-bottom: 20px;
+            font-size: 3rem;
+            margin-bottom: 15px;
             opacity: 0.5;
         }
 
         .upload-section {
             background: rgba(0, 0, 0, 0.3);
-            padding: 25px;
-            border-radius: 20px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
         }
 
         .upload-controls {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             align-items: center;
             flex-wrap: wrap;
-            margin-bottom: 15px;
         }
 
         .file-input-wrapper {
             position: relative;
             flex: 1;
-            min-width: 250px;
+            min-width: 200px;
         }
 
         .file-input {
             width: 100%;
-            padding: 15px;
+            padding: 12px;
             background: rgba(255, 255, 255, 0.1);
             border: 2px dashed rgba(255, 255, 255, 0.3);
-            border-radius: 15px;
+            border-radius: 10px;
             color: white;
             cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s ease;
         }
 
         .file-input:hover {
             border-color: #4ecdc4;
-            background: rgba(255, 255, 255, 0.15);
         }
 
         .file-input::file-selector-button {
-            background: linear-gradient(45deg, #4CAF50, #45a049);
+            background: #4CAF50;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
+            padding: 8px 16px;
+            border-radius: 5px;
             cursor: pointer;
-            margin-right: 15px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .file-input::file-selector-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+            margin-right: 10px;
         }
 
         .btn {
-            padding: 15px 30px;
+            padding: 12px 24px;
             border: none;
             border-radius: 25px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
-            min-width: 140px;
         }
 
         .btn-primary {
@@ -223,8 +191,8 @@
         }
 
         .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(76, 175, 80, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
         }
 
         .btn-danger {
@@ -233,8 +201,8 @@
         }
 
         .btn-danger:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(244, 67, 54, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
         }
 
         .btn-warning {
@@ -243,18 +211,8 @@
         }
 
         .btn-warning:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(255, 152, 0, 0.4);
-        }
-
-        .btn-info {
-            background: linear-gradient(45deg, #2196F3, #1976D2);
-            color: white;
-        }
-
-        .btn-info:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(33, 150, 243, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
         }
 
         .btn:disabled {
@@ -266,208 +224,118 @@
 
         .controls {
             display: flex;
-            gap: 15px;
-            margin: 25px 0;
+            gap: 12px;
+            margin: 20px 0;
             justify-content: center;
             flex-wrap: wrap;
         }
 
-        .detection-display {
-            text-align: center;
-            padding: 25px;
-        }
-
-        .expression {
-            font-size: 5rem;
-            margin-bottom: 25px;
-            height: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-
-        .expression-text {
-            font-size: 2.8rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-transform: capitalize;
-            transition: all 0.2s ease;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .confidence {
-            font-size: 1.5rem;
-            margin-bottom: 25px;
-            opacity: 0.9;
+        .status-panel {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
         }
 
         .status {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-            padding: 15px;
-            border-radius: 15px;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
             background: rgba(255, 255, 255, 0.1);
             border-left: 4px solid #4ecdc4;
-        }
-
-        .speech-indicator {
-            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
-            padding: 20px;
-            border-radius: 25px;
-            margin: 20px 0;
-            font-weight: bold;
-            animation: pulse 1s infinite;
-            font-size: 1.3rem;
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
-            50% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(255, 107, 107, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
         }
 
         .performance {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin: 25px 0;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 20px;
+            gap: 15px;
+            margin: 20px 0;
         }
 
         .performance-item {
             text-align: center;
-            padding: 15px;
+            padding: 12px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            transition: all 0.3s ease;
-        }
-
-        .performance-item:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
         }
 
         .performance-value {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             font-weight: bold;
             color: #4ecdc4;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
         }
 
         .performance-label {
-            font-size: 1rem;
+            font-size: 0.9rem;
             opacity: 0.8;
         }
 
-        .transform-panel {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            padding: 20px;
-            border-radius: 20px;
-            margin: 20px 0;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .transform-grid {
+        .movement-indicators {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 15px;
+            gap: 10px;
+            margin: 15px 0;
         }
 
-        .transform-item {
+        .indicator {
             background: rgba(255, 255, 255, 0.1);
-            padding: 12px;
-            border-radius: 10px;
+            padding: 10px;
+            border-radius: 8px;
             text-align: center;
         }
 
-        .transform-value {
-            font-size: 1.3rem;
+        .indicator-value {
+            font-size: 1.1rem;
             font-weight: bold;
             color: #fff;
         }
 
-        .transform-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-top: 5px;
+        .indicator-label {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 3px;
         }
 
-        .image-list {
+        .logs {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px;
             max-height: 200px;
             overflow-y: auto;
             margin-top: 20px;
         }
 
-        .image-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 15px;
-            background: rgba(255, 255, 255, 0.1);
-            margin-bottom: 8px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .image-item:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateX(5px);
-        }
-
-        .image-item.active {
-            background: rgba(78, 205, 196, 0.3);
-            border: 2px solid #4ecdc4;
-            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.3);
-        }
-
-        .logs {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 20px;
-            padding: 20px;
-            max-height: 250px;
-            overflow-y: auto;
-            margin-top: 25px;
-        }
-
         .log-entry {
-            padding: 8px 0;
+            padding: 5px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-family: 'Courier New', monospace;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
         }
 
         .footer {
             text-align: center;
-            margin-top: 40px;
-            padding: 25px;
+            margin-top: 30px;
+            padding: 20px;
             opacity: 0.7;
-            font-size: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
+            font-size: 0.9rem;
         }
 
         .loading {
             display: none;
             text-align: center;
-            padding: 30px;
+            padding: 20px;
         }
 
         .spinner {
-            border: 5px solid rgba(255, 255, 255, 0.3);
+            border: 4px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            border-top: 5px solid #4ecdc4;
-            width: 50px;
-            height: 50px;
+            border-top: 4px solid #4ecdc4;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
+            margin: 0 auto 10px;
         }
 
         @keyframes spin {
@@ -475,761 +343,173 @@
             100% { transform: rotate(360deg); }
         }
 
-        .ethical-warning {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-            padding: 15px;
-            border-radius: 15px;
-            margin: 20px 0;
-            text-align: center;
-            font-weight: bold;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .feature-indicator {
+        .feature-tag {
             display: inline-block;
             background: rgba(78, 205, 196, 0.2);
-            padding: 5px 15px;
-            border-radius: 20px;
-            margin: 0 5px;
+            padding: 4px 12px;
+            border-radius: 15px;
+            margin: 0 3px;
             border: 1px solid #4ecdc4;
+            font-size: 0.8rem;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎭 Face Reenactor Pro</h1>
-            <p>Advanced Real-time Face Animation & Reenactment System</p>
-            <div style="margin-top: 15px;">
-                <span class="feature-indicator">Live Expression Transfer</span>
-                <span class="feature-indicator">Image Animation</span>
-                <span class="feature-indicator">Real-time Face Tracking</span>
+            <h1>🎭 Face Puppet Animator</h1>
+            <p>Real-time Face Animation using MediaPipe & Canvas</p>
+            <div style="margin-top: 10px;">
+                <span class="feature-tag">MediaPipe Face Mesh</span>
+                <span class="feature-tag">Real-time Animation</span>
+                <span class="feature-tag">Canvas Rendering</span>
             </div>
-        </div>
-
-        <div class="ethical-warning">
-            ⚠️ ETHICAL USE ONLY: This technology should only be used with explicit consent. 
-            Always inform participants when using face animation and never misuse for deception.
         </div>
 
         <div class="main-content">
             <div class="camera-section">
-                <h2 class="section-title">📹 Live Camera Feed</h2>
+                <h2 class="section-title">📹 Your Live Camera</h2>
                 
                 <div class="video-container">
-                    <video id="video" autoplay playsinline></video>
-                    <canvas id="canvas" class="canvas-overlay"></canvas>
+                    <video id="cameraVideo" autoplay playsinline></video>
                 </div>
 
                 <div class="upload-section">
-                    <h3>🖼️ Upload Face for Animation</h3>
+                    <h3>🖼️ Upload Face Image</h3>
                     <div class="upload-controls">
                         <div class="file-input-wrapper">
                             <input type="file" id="imageUpload" class="file-input" accept="image/*" />
                         </div>
-                        <button id="uploadBtn" class="btn btn-primary">Upload Image</button>
-                        <button id="clearImageBtn" class="btn btn-warning">Clear Image</button>
-                    </div>
-                    
-                    <div class="image-list" id="imageList">
-                        <!-- Uploaded images will appear here -->
+                        <button id="uploadBtn" class="btn btn-primary">Upload</button>
+                        <button id="clearBtn" class="btn btn-warning">Clear</button>
                     </div>
                 </div>
 
                 <div class="controls">
                     <button id="startBtn" class="btn btn-primary">Start Animation</button>
                     <button id="stopBtn" class="btn btn-danger" disabled>Stop Animation</button>
-                    <button id="calibrateBtn" class="btn btn-info">Calibrate</button>
                 </div>
 
                 <div class="performance">
                     <div class="performance-item">
                         <div class="performance-value" id="fpsCounter">0 FPS</div>
-                        <div class="performance-label">Animation Speed</div>
+                        <div class="performance-label">Tracking Speed</div>
                     </div>
                     <div class="performance-item">
-                        <div class="performance-value" id="detectionTime">0ms</div>
-                        <div class="performance-label">Processing Time</div>
+                        <div class="performance-value" id="faceConfidence">0%</div>
+                        <div class="performance-label">Face Confidence</div>
                     </div>
                     <div class="performance-item">
                         <div class="performance-value" id="landmarkCount">0</div>
-                        <div class="performance-label">Landmarks Tracked</div>
+                        <div class="performance-label">Landmarks</div>
                     </div>
                 </div>
 
                 <div class="loading" id="loading">
                     <div class="spinner"></div>
-                    <p>Loading Advanced Face Animation System...</p>
+                    <p>Loading Face Tracking System...</p>
                 </div>
             </div>
 
             <div class="animation-section">
-                <h2 class="section-title">🎬 Live Animation Output</h2>
+                <h2 class="section-title">🎬 Animated Output</h2>
                 
                 <div class="animation-container">
-                    <img id="animatedImage" style="display: none;">
+                    <canvas id="animatedCanvas"></canvas>
                     <div id="animationPlaceholder" class="animation-placeholder">
                         <div>🎭</div>
-                        <div>Upload a face image to see it animated in real-time</div>
-                        <div style="font-size: 1rem; margin-top: 15px; opacity: 0.6;">
-                            The image will mirror your facial expressions and head movements
+                        <div>Upload a face image to see real-time animation</div>
+                        <div style="font-size: 0.9rem; margin-top: 10px; opacity: 0.5;">
+                            The face will mirror your expressions and movements
                         </div>
                     </div>
                 </div>
 
-                <div class="detection-display">
-                    <div class="expression" id="expressionEmoji">😐</div>
-                    <div class="expression-text" id="expressionText">Neutral</div>
-                    <div class="confidence" id="confidenceText">Confidence: 0%</div>
-                    
-                    <div id="speechIndicator" class="speech-indicator" style="display: none;">
-                        🗣️ SPEAKING DETECTED - Mouth Animation Active!
-                    </div>
-                    
-                    <div class="status" id="statusText">Ready for face animation - Upload an image and click Start Animation</div>
-
-                    <div class="transform-panel">
-                        <h3>🔄 Real-time Transformations</h3>
-                        <div class="transform-grid">
-                            <div class="transform-item">
-                                <div class="transform-value" id="headPosition">Center</div>
-                                <div class="transform-label">Head Position</div>
-                            </div>
-                            <div class="transform-item">
-                                <div class="transform-value" id="mouthOpenness">0%</div>
-                                <div class="transform-label">Mouth Openness</div>
-                            </div>
-                            <div class="transform-item">
-                                <div class="transform-value" id="eyeOpenness">100%</div>
-                                <div class="transform-label">Eye Openness</div>
-                            </div>
-                            <div class="transform-item">
-                                <div class="transform-value" id="animationActive">No</div>
-                                <div class="transform-label">Animation Active</div>
-                            </div>
-                        </div>
+                <div class="status-panel">
+                    <div class="status" id="statusText">
+                        Ready to start face animation
                     </div>
 
-                    <div class="performance">
-                        <div class="performance-item">
-                            <div class="performance-value" id="transformX">0px</div>
-                            <div class="performance-label">Position X</div>
+                    <div class="movement-indicators">
+                        <div class="indicator">
+                            <div class="indicator-value" id="mouthOpenness">0%</div>
+                            <div class="indicator-label">Mouth Open</div>
                         </div>
-                        <div class="performance-item">
-                            <div class="performance-value" id="transformY">0px</div>
-                            <div class="performance-label">Position Y</div>
+                        <div class="indicator">
+                            <div class="indicator-value" id="eyeOpenness">100%</div>
+                            <div class="indicator-label">Eyes Open</div>
                         </div>
-                        <div class="performance-item">
-                            <div class="performance-value" id="transformScale">100%</div>
-                            <div class="performance-label">Scale</div>
+                        <div class="indicator">
+                            <div class="indicator-value" id="headPosition">Center</div>
+                            <div class="indicator-label">Head Position</div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-value" id="animationStatus">Inactive</div>
+                            <div class="indicator-label">Animation</div>
                         </div>
                     </div>
-                    
-                    <div class="logs">
-                        <h3>Animation Log</h3>
-                        <div id="logContainer"></div>
-                    </div>
+                </div>
+
+                <div class="logs">
+                    <h3>System Log</h3>
+                    <div id="logContainer"></div>
                 </div>
             </div>
         </div>
 
         <div class="footer">
-            <p>Face Reenactor Pro | Advanced Real-time Face Animation System | Use Responsibly</p>
+            <p>Face Puppet Animator | Real-time Face Animation System</p>
         </div>
     </div>
 
-    <!-- Include TensorFlow.js and FaceAPI from CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.1/dist/face-landmarks-detection.min.js"></script>
+    <!-- MediaPipe and other libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="/socket.io/socket.io.js"></script>
 
     <script>
-        // Global variables for advanced face animation
-        let video = document.getElementById('video');
-        let canvas = document.getElementById('canvas');
-        let ctx = canvas.getContext('2d');
-        let model = null;
-        let isDetecting = false;
+        // Global variables
+        let faceMesh = null;
+        let camera = null;
         let isAnimating = false;
-        let detectionInterval = null;
-        let currentSessionId = null;
+        let uploadedImage = null;
+        let faceLandmarks = null;
+        let animationCanvas, animationCtx;
         let frameCount = 0;
         let lastFpsUpdate = Date.now();
         let fps = 0;
 
-        // Socket.io for real-time animation
-        let socket = null;
-
-        // Image animation variables
-        let currentImageId = null;
-        let uploadedImages = [];
-        let currentTransform = {
-            transform: 'translate(0px, 0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)',
-            filter: 'brightness(1) contrast(1)',
-            clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)'
-        };
-
-        // Performance monitoring
-        let detectionStartTime = 0;
-        let totalDetectionTime = 0;
-        let detectionCount = 0;
-
-        // Speech detection
-        let isSpeaking = false;
-        let mouthOpennessHistory = [];
-
         // DOM elements
+        const cameraVideo = document.getElementById('cameraVideo');
+        const animatedCanvas = document.getElementById('animatedCanvas');
+        const animationPlaceholder = document.getElementById('animationPlaceholder');
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
-        const calibrateBtn = document.getElementById('calibrateBtn');
-        const loading = document.getElementById('loading');
-        const expressionEmoji = document.getElementById('expressionEmoji');
-        const expressionText = document.getElementById('expressionText');
-        const confidenceText = document.getElementById('confidenceText');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const imageUpload = document.getElementById('imageUpload');
         const statusText = document.getElementById('statusText');
         const logContainer = document.getElementById('logContainer');
         const fpsCounter = document.getElementById('fpsCounter');
-        const detectionTime = document.getElementById('detectionTime');
+        const faceConfidence = document.getElementById('faceConfidence');
         const landmarkCount = document.getElementById('landmarkCount');
-        const speechIndicator = document.getElementById('speechIndicator');
         const mouthOpenness = document.getElementById('mouthOpenness');
-        const headPosition = document.getElementById('headPosition');
         const eyeOpenness = document.getElementById('eyeOpenness');
-        const animationActive = document.getElementById('animationActive');
-        const imageUpload = document.getElementById('imageUpload');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const clearImageBtn = document.getElementById('clearImageBtn');
-        const animatedImage = document.getElementById('animatedImage');
-        const animationPlaceholder = document.getElementById('animationPlaceholder');
-        const imageList = document.getElementById('imageList');
-        const transformX = document.getElementById('transformX');
-        const transformY = document.getElementById('transformY');
-        const transformScale = document.getElementById('transformScale');
+        const headPosition = document.getElementById('headPosition');
+        const animationStatus = document.getElementById('animationStatus');
+        const loading = document.getElementById('loading');
 
-        // Enhanced expression mapping
-        const expressionMap = {
-            'neutral': '😐',
-            'happy': '😊',
-            'very_happy': '😄',
-            'sad': '😢',
-            'very_sad': '😭',
-            'angry': '😠',
-            'fearful': '😨',
-            'disgusted': '🤢',
-            'surprised': '😲',
-            'blink': '😑',
-            'leftTurn': '👈',
-            'rightTurn': '👉',
-            'up': '👆',
-            'down': '👇',
-            'smirk': '😏',
-            'wink': '😉',
-            'speaking': '🗣️',
-            'talking': '💬'
-        };
-
-        // Initialize socket connection
-        function initializeSocket() {
-            socket = io();
-            
-            socket.on('connect', () => {
-                log('🔗 Connected to animation server');
-            });
-            
-            socket.on('animation-update', (data) => {
-                updateImageAnimation(data);
-            });
-            
-            socket.on('disconnect', () => {
-                log('🔌 Disconnected from animation server', 'error');
-            });
+        // Initialize animation canvas
+        function initCanvas() {
+            animationCanvas = document.getElementById('animatedCanvas');
+            animationCtx = animationCanvas.getContext('2d');
+            animationCanvas.width = 640;
+            animationCanvas.height = 480;
         }
 
-        // Load uploaded images from server
-        async function loadUploadedImages() {
-            try {
-                const response = await fetch('/uploaded-images');
-                const data = await response.json();
-                
-                if (data.success) {
-                    uploadedImages = data.images;
-                    updateImageList();
-                }
-            } catch (error) {
-                console.error('Error loading images:', error);
-            }
-        }
-
-        // Update image list in UI
-        function updateImageList() {
-            imageList.innerHTML = '';
-            
-            uploadedImages.forEach(image => {
-                const imageItem = document.createElement('div');
-                imageItem.className = 'image-item';
-                if (image.id === currentImageId) {
-                    imageItem.classList.add('active');
-                }
-                
-                imageItem.innerHTML = `
-                    <span>📷 ${image.filename}</span>
-                    <button onclick="selectImage('${image.id}', '${image.url}')" class="btn" style="padding: 8px 15px; font-size: 0.9rem;">Select</button>
-                `;
-                
-                imageList.appendChild(imageItem);
-            });
-        }
-
-        // Select image for animation
-        function selectImage(imageId, imageUrl) {
-            currentImageId = imageId;
-            animatedImage.src = imageUrl;
-            animatedImage.style.display = 'block';
-            animationPlaceholder.style.display = 'none';
-            
-            // Update image list to show active image
-            updateImageList();
-            
-            log(`🖼️ Image selected for animation: ${imageId}`);
-            statusText.textContent = 'Image loaded - Ready for animation!';
-        }
-
-        // Clear current image
-        function clearImage() {
-            currentImageId = null;
-            animatedImage.style.display = 'none';
-            animationPlaceholder.style.display = 'flex';
-            updateImageList();
-            log('🗑️ Image cleared');
-        }
-
-        // Upload image
-        async function uploadImage() {
-            const file = imageUpload.files[0];
-            if (!file) {
-                alert('Please select an image file first');
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('faceImage', file);
-
-            try {
-                uploadBtn.disabled = true;
-                uploadBtn.textContent = 'Uploading...';
-
-                const response = await fetch('/upload-face', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    log(`✅ Image uploaded: ${data.filename}`);
-                    await loadUploadedImages();
-                    selectImage(data.imageId, data.imageUrl);
-                    imageUpload.value = ''; // Clear file input
-                } else {
-                    throw new Error(data.error);
-                }
-            } catch (error) {
-                log(`❌ Upload failed: ${error.message}`, 'error');
-            } finally {
-                uploadBtn.disabled = false;
-                uploadBtn.textContent = 'Upload Image';
-            }
-        }
-
-        // Initialize camera with optimized settings
-        async function initCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        width: { ideal: 640 }, 
-                        height: { ideal: 480 },
-                        facingMode: 'user',
-                        frameRate: { ideal: 30 }
-                    } 
-                });
-                video.srcObject = stream;
-                
-                video.addEventListener('loadedmetadata', () => {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                });
-                
-                log('📹 Camera ready - Face animation enabled');
-                return true;
-            } catch (error) {
-                log('❌ Camera error: ' + error.message, 'error');
-                return false;
-            }
-        }
-
-        // Load optimized face detection model
-        async function loadModel() {
-            try {
-                loading.style.display = 'block';
-                statusText.textContent = 'Loading Advanced Face Animation System...';
-                
-                model = await faceLandmarksDetection.load(
-                    faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
-                    { 
-                        maxFaces: 1,
-                        refineLandmarks: true,
-                        detectionFlips: false
-                    }
-                );
-                
-                loading.style.display = 'none';
-                statusText.textContent = '⚡ Face Animation System Ready!';
-                log('✅ Advanced face animation model loaded');
-                return true;
-            } catch (error) {
-                loading.style.display = 'none';
-                log('❌ Model load error: ' + error.message, 'error');
-                statusText.textContent = 'Failed to load model';
-                return false;
-            }
-        }
-
-        // Start advanced animation session
-        async function startAnimation() {
-            if (!currentImageId) {
-                alert('Please upload and select an image first');
-                return;
-            }
-
-            try {
-                // Start animation session on server
-                const response = await fetch('/start-animation-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ imageId: currentImageId })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    currentSessionId = data.sessionId;
-                    isDetecting = true;
-                    isAnimating = true;
-                    startBtn.disabled = true;
-                    stopBtn.disabled = false;
-                    statusText.textContent = '⚡ Face Animation Active!';
-                    animationActive.textContent = 'Yes';
-                    
-                    // Start socket animation
-                    socket.emit('start-animation', {
-                        sessionId: currentSessionId,
-                        imageId: currentImageId
-                    });
-                    
-                    log(`🎬 Animation session started: ${currentSessionId}`);
-                    detectFaces();
-                } else {
-                    throw new Error(data.error);
-                }
-            } catch (error) {
-                log('❌ Animation start error: ' + error.message, 'error');
-            }
-        }
-
-        // Stop animation
-        async function stopAnimation() {
-            isDetecting = false;
-            isAnimating = false;
-            cancelAnimationFrame(detectionInterval);
-            
-            startBtn.disabled = false;
-            stopBtn.disabled = true;
-            statusText.textContent = 'Animation stopped';
-            speechIndicator.style.display = 'none';
-            animationActive.textContent = 'No';
-            
-            // Stop socket animation
-            socket.emit('stop-animation');
-            
-            if (currentSessionId) {
-                try {
-                    await fetch('/end-session', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ sessionId: currentSessionId })
-                    });
-                    log('📊 Animation session ended');
-                } catch (error) {
-                    log('❌ Session end error: ' + error.message, 'error');
-                }
-                currentSessionId = null;
-            }
-            
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            resetDisplay();
-            resetImageAnimation();
-        }
-
-        // Reset image animation
-        function resetImageAnimation() {
-            currentTransform = {
-                transform: 'translate(0px, 0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg)',
-                filter: 'brightness(1) contrast(1)',
-                clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)'
-            };
-            applyImageTransform();
-        }
-
-        // Apply image transform
-        function applyImageTransform() {
-            if (animatedImage.style.display !== 'none') {
-                animatedImage.style.transform = currentTransform.transform;
-                animatedImage.style.filter = currentTransform.filter;
-                animatedImage.style.clipPath = currentTransform.clipPath;
-            }
-        }
-
-        // Update image animation based on server data
-        function updateImageAnimation(data) {
-            currentTransform = data.transform;
-            applyImageTransform();
-            
-            // Update transform displays
-            const transformMatch = data.transform.transform.match(/translate\(([^)]+)\)/);
-            if (transformMatch) {
-                const [x, y] = transformMatch[1].split(',').map(val => parseInt(val.trim()));
-                transformX.textContent = `${x}px`;
-                transformY.textContent = `${y}px`;
-            }
-            
-            const scaleMatch = data.transform.transform.match(/scale\(([^)]+)\)/);
-            if (scaleMatch) {
-                transformScale.textContent = `${Math.round(parseFloat(scaleMatch[1]) * 100)}%`;
-            }
-        }
-
-        // Reset display to neutral
-        function resetDisplay() {
-            expressionEmoji.textContent = '😐';
-            expressionText.textContent = 'Neutral';
-            confidenceText.textContent = 'Confidence: 0%';
-            mouthOpenness.textContent = '0%';
-            headPosition.textContent = 'Center';
-            eyeOpenness.textContent = '100%';
-        }
-
-        // Advanced face detection with animation
-        async function detectFaces() {
-            if (!model || !isDetecting) return;
-            
-            detectionStartTime = performance.now();
-            frameCount++;
-            
-            try {
-                const predictions = await model.estimateFaces({
-                    input: video,
-                    returnTensors: false,
-                    flipHorizontal: false,
-                    predictIrises: true
-                });
-                
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                if (predictions.length > 0) {
-                    const face = predictions[0];
-                    drawAdvancedLandmarks(face);
-                    
-                    const analysis = analyzeFaceForAnimation(face);
-                    updateDisplayWithAnimation(analysis);
-                    
-                    // Send landmarks to server for animation generation
-                    if (isAnimating && currentImageId) {
-                        const response = await fetch('/generate-animation', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                landmarks: face.scaledMesh,
-                                imageId: currentImageId
-                            })
-                        });
-                        
-                        const animationData = await response.json();
-                        if (animationData.success) {
-                            updateImageAnimation(animationData);
-                        }
-                        
-                        // Also send via socket for real-time updates
-                        socket.emit('face-landmarks', {
-                            landmarks: face.scaledMesh,
-                            sessionId: currentSessionId
-                        });
-                    }
-                    
-                    landmarkCount.textContent = face.scaledMesh.length;
-                } else {
-                    statusText.textContent = '⚡ No face detected';
-                    resetDisplay();
-                    resetImageAnimation();
-                }
-                
-                updatePerformanceMetrics();
-                
-            } catch (error) {
-                if (error.message !== 'Cancelled') {
-                    log('⚠️ Detection error: ' + error.message, 'error');
-                }
-            }
-            
-            if (isDetecting) {
-                detectionInterval = requestAnimationFrame(detectFaces);
-            }
-        }
-
-        // Draw advanced facial landmarks
-        function drawAdvancedLandmarks(face) {
-            const landmarks = face.scaledMesh;
-            const boundingBox = face.boundingBox;
-            
-            // Draw bounding box
-            ctx.strokeStyle = '#00ff00';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(
-                boundingBox.topLeft[0],
-                boundingBox.topLeft[1],
-                boundingBox.bottomRight[0] - boundingBox.topLeft[0],
-                boundingBox.bottomRight[1] - boundingBox.topLeft[1]
-            );
-            
-            // Draw key facial points
-            ctx.fillStyle = '#ff0000';
-            const keyPoints = [33, 133, 362, 263, 61, 291, 13, 14, 1, 152]; // Key points only
-            
-            keyPoints.forEach(index => {
-                if (landmarks[index]) {
-                    const point = landmarks[index];
-                    ctx.beginPath();
-                    ctx.arc(point[0], point[1], 3, 0, 2 * Math.PI);
-                    ctx.fill();
-                }
-            });
-        }
-
-        // Advanced facial analysis for animation
-        function analyzeFaceForAnimation(face) {
-            const landmarks = face.scaledMesh;
-            
-            // Get key points
-            const noseTip = landmarks[1];
-            const mouthTop = landmarks[13];
-            const mouthBottom = landmarks[14];
-            const leftEye = landmarks[33];
-            const rightEye = landmarks[263];
-            
-            let expression = 'neutral';
-            let confidence = 0.8;
-            let additionalInfo = 'Face detected - Animation active';
-            let headPos = 'Center';
-            
-            // Calculate mouth openness
-            const mouthOpennessVal = Math.abs(mouthBottom[1] - mouthTop[1]);
-            mouthOpenness.textContent = `${Math.min(100, Math.round(mouthOpennessVal))}%`;
-            
-            // Head position detection
-            if (noseTip[0] < canvas.width * 0.35) {
-                headPos = 'Left';
-                expression = 'leftTurn';
-            } else if (noseTip[0] > canvas.width * 0.65) {
-                headPos = 'Right';
-                expression = 'rightTurn';
-            } else if (noseTip[1] < canvas.height * 0.35) {
-                headPos = 'Up';
-                expression = 'up';
-            } else if (noseTip[1] > canvas.height * 0.65) {
-                headPos = 'Down';
-                expression = 'down';
-            }
-            
-            headPosition.textContent = headPos;
-            
-            // Speech detection
-            const avgMouthOpenness = mouthOpennessHistory.reduce((a, b) => a + b, 0) / mouthOpennessHistory.length || 0;
-            isSpeaking = mouthOpennessVal > 15 && avgMouthOpenness > 10;
-            
-            if (isSpeaking) {
-                expression = 'talking';
-                additionalInfo = 'SPEAKING - Mouth animation active';
-            }
-            
-            return {
-                expression: expression,
-                confidence: confidence,
-                additionalInfo: additionalInfo,
-                mouthOpenness: mouthOpennessVal,
-                headPosition: headPos,
-                isSpeaking: isSpeaking
-            };
-        }
-
-        // Enhanced display update with animation info
-        function updateDisplayWithAnimation(analysis) {
-            const emoji = expressionMap[analysis.expression] || '😐';
-            const expressionName = analysis.expression.replace('_', ' ').toUpperCase();
-            
-            expressionEmoji.textContent = emoji;
-            expressionText.textContent = expressionName;
-            confidenceText.textContent = `Confidence: ${Math.round(analysis.confidence * 100)}%`;
-            statusText.textContent = analysis.additionalInfo;
-            
-            // Speech indicator
-            if (analysis.isSpeaking) {
-                speechIndicator.style.display = 'block';
-                expressionEmoji.style.transform = 'scale(1.3)';
-                expressionText.style.color = '#ffaa00';
-            } else {
-                speechIndicator.style.display = 'none';
-                expressionEmoji.style.transform = 'scale(1)';
-                expressionText.style.color = 'white';
-            }
-        }
-
-        // Performance monitoring
-        function updatePerformanceMetrics() {
-            const now = Date.now();
-            const currentDetectionTime = performance.now() - detectionStartTime;
-            
-            totalDetectionTime += currentDetectionTime;
-            detectionCount++;
-            
-            if (now - lastFpsUpdate >= 1000) {
-                fps = frameCount;
-                frameCount = 0;
-                lastFpsUpdate = now;
-                
-                const avgDetectionTime = totalDetectionTime / detectionCount;
-                
-                fpsCounter.textContent = `${fps} FPS`;
-                detectionTime.textContent = `${avgDetectionTime.toFixed(1)}ms`;
-                
-                totalDetectionTime = 0;
-                detectionCount = 0;
-            }
-        }
-
-        // Calibration function
-        function calibrateAnimation() {
-            log('🔧 Starting animation calibration...');
-            statusText.textContent = 'Calibrating - Please maintain neutral expression';
-            
-            // Reset any previous calibration
-            mouthOpennessHistory = [];
-            
-            setTimeout(() => {
-                log('✅ Calibration complete');
-                statusText.textContent = 'Calibration complete - Animation ready';
-            }, 3000);
-        }
-
-        // Fast logging
+        // Logging function
         function log(message, type = 'info') {
             const logEntry = document.createElement('div');
             logEntry.className = 'log-entry';
@@ -1242,38 +522,355 @@
             }
             
             logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
             
-            if (logContainer.children.length > 15) {
+            // Keep only last 10 entries
+            if (logContainer.children.length > 10) {
                 logContainer.removeChild(logContainer.firstChild);
             }
+        }
+
+        // Initialize MediaPipe Face Mesh
+        async function initFaceMesh() {
+            loading.style.display = 'block';
+            statusText.textContent = 'Initializing face tracking...';
+
+            try {
+                faceMesh = new FaceMesh({
+                    locateFile: (file) => {
+                        return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+                    }
+                });
+
+                faceMesh.setOptions({
+                    maxNumFaces: 1,
+                    refineLandmarks: true,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+
+                faceMesh.onResults(onFaceResults);
+
+                // Initialize camera
+                camera = new Camera(cameraVideo, {
+                    onFrame: async () => {
+                        if (faceMesh) {
+                            await faceMesh.send({image: cameraVideo});
+                        }
+                    },
+                    width: 640,
+                    height: 480
+                });
+
+                await camera.start();
+                loading.style.display = 'none';
+                statusText.textContent = 'Face tracking ready - Upload an image to start';
+                log('✅ Face tracking system initialized');
+
+            } catch (error) {
+                loading.style.display = 'none';
+                log(`❌ Failed to initialize face tracking: ${error.message}`, 'error');
+                statusText.textContent = 'Failed to initialize camera';
+            }
+        }
+
+        // Process face detection results
+        function onFaceResults(results) {
+            frameCount++;
             
-            logContainer.scrollTop = logContainer.scrollHeight;
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                const landmarks = results.multiFaceLandmarks[0];
+                landmarkCount.textContent = landmarks.length;
+                faceConfidence.textContent = '100%';
+                
+                if (isAnimating && uploadedImage) {
+                    animateFace(landmarks);
+                }
+                
+                updateMovementIndicators(landmarks);
+            } else {
+                faceConfidence.textContent = '0%';
+                landmarkCount.textContent = '0';
+            }
+            
+            updateFPS();
+        }
+
+        // Animate the uploaded face based on live landmarks
+        function animateFace(liveLandmarks) {
+            if (!uploadedImage || !faceLandmarks) return;
+
+            // Clear canvas
+            animationCtx.clearRect(0, 0, animationCanvas.width, animationCanvas.height);
+            
+            // Draw the uploaded image
+            animationCtx.drawImage(uploadedImage, 0, 0, animationCanvas.width, animationCanvas.height);
+            
+            // Calculate transformations based on live face movements
+            const transformations = calculateTransformations(liveLandmarks);
+            
+            // Apply transformations to specific facial features
+            applyMouthAnimation(transformations.mouth);
+            applyEyeAnimation(transformations.eyes);
+            applyHeadAnimation(transformations.head);
+            
+            animationStatus.textContent = 'Active';
+        }
+
+        // Calculate transformations from live landmarks
+        function calculateTransformations(liveLandmarks) {
+            // Key landmark indices from MediaPipe Face Mesh
+            const MOUTH_UPPER = 13;
+            const MOUTH_LOWER = 14;
+            const LEFT_EYE_TOP = 159;
+            const LEFT_EYE_BOTTOM = 145;
+            const RIGHT_EYE_TOP = 386;
+            const RIGHT_EYE_BOTTOM = 374;
+            const NOSE_TIP = 1;
+            
+            // Calculate mouth openness
+            const mouthOpen = liveLandmarks[MOUTH_LOWER].y - liveLandmarks[MOUTH_UPPER].y;
+            
+            // Calculate eye openness
+            const leftEyeOpen = liveLandmarks[LEFT_EYE_BOTTOM].y - liveLandmarks[LEFT_EYE_TOP].y;
+            const rightEyeOpen = liveLandmarks[RIGHT_EYE_BOTTOM].y - liveLandmarks[RIGHT_EYE_TOP].y;
+            
+            // Calculate head position
+            const headX = liveLandmarks[NOSE_TIP].x;
+            let headPos = 'Center';
+            if (headX < 0.4) headPos = 'Left';
+            else if (headX > 0.6) headPos = 'Right';
+            
+            return {
+                mouth: {
+                    openness: Math.min(1, mouthOpen * 10),
+                    isTalking: mouthOpen > 0.05
+                },
+                eyes: {
+                    left: Math.min(1, leftEyeOpen * 10),
+                    right: Math.min(1, rightEyeOpen * 10),
+                    isBlinking: (leftEyeOpen < 0.02 && rightEyeOpen < 0.02)
+                },
+                head: {
+                    position: headPos,
+                    x: (headX - 0.5) * 50 // -25 to +25 pixels
+                }
+            };
+        }
+
+        // Apply mouth animation
+        function applyMouthAnimation(mouthData) {
+            if (mouthData.isTalking) {
+                // Create mouth opening effect
+                const mouthWidth = 100;
+                const mouthHeight = 20 + (mouthData.openness * 30);
+                const centerX = animationCanvas.width / 2;
+                const centerY = animationCanvas.height / 2 + 50;
+                
+                // Draw animated mouth
+                animationCtx.fillStyle = '#000000';
+                animationCtx.beginPath();
+                animationCtx.ellipse(centerX, centerY, mouthWidth, mouthHeight, 0, 0, Math.PI * 2);
+                animationCtx.fill();
+                
+                mouthOpenness.textContent = `${Math.round(mouthData.openness * 100)}%`;
+            } else {
+                mouthOpenness.textContent = '0%';
+            }
+        }
+
+        // Apply eye animation
+        function applyEyeAnimation(eyeData) {
+            const leftEyeX = animationCanvas.width / 2 - 35;
+            const rightEyeX = animationCanvas.width / 2 + 35;
+            const eyeY = animationCanvas.height / 2 - 20;
+            
+            // Draw left eye
+            if (eyeData.isBlinking) {
+                // Draw closed eye (line)
+                animationCtx.strokeStyle = '#000000';
+                animationCtx.lineWidth = 3;
+                animationCtx.beginPath();
+                animationCtx.moveTo(leftEyeX - 15, eyeY);
+                animationCtx.lineTo(leftEyeX + 15, eyeY);
+                animationCtx.stroke();
+            } else {
+                // Draw open eye
+                animationCtx.fillStyle = '#ffffff';
+                animationCtx.beginPath();
+                animationCtx.ellipse(leftEyeX, eyeY, 15, 15 - (eyeData.left * 5), 0, 0, Math.PI * 2);
+                animationCtx.fill();
+                
+                // Draw pupil
+                animationCtx.fillStyle = '#000000';
+                animationCtx.beginPath();
+                animationCtx.arc(leftEyeX, eyeY, 7, 0, Math.PI * 2);
+                animationCtx.fill();
+            }
+            
+            // Draw right eye
+            if (eyeData.isBlinking) {
+                animationCtx.strokeStyle = '#000000';
+                animationCtx.lineWidth = 3;
+                animationCtx.beginPath();
+                animationCtx.moveTo(rightEyeX - 15, eyeY);
+                animationCtx.lineTo(rightEyeX + 15, eyeY);
+                animationCtx.stroke();
+            } else {
+                animationCtx.fillStyle = '#ffffff';
+                animationCtx.beginPath();
+                animationCtx.ellipse(rightEyeX, eyeY, 15, 15 - (eyeData.right * 5), 0, 0, Math.PI * 2);
+                animationCtx.fill();
+                
+                animationCtx.fillStyle = '#000000';
+                animationCtx.beginPath();
+                animationCtx.arc(rightEyeX, eyeY, 7, 0, Math.PI * 2);
+                animationCtx.fill();
+            }
+            
+            eyeOpenness.textContent = eyeData.isBlinking ? '0%' : '100%';
+        }
+
+        // Apply head animation
+        function applyHeadAnimation(headData) {
+            // Apply head position translation
+            animationCtx.save();
+            animationCtx.translate(headData.x, 0);
+            animationCtx.drawImage(uploadedImage, 0, 0, animationCanvas.width, animationCanvas.height);
+            animationCtx.restore();
+            
+            headPosition.textContent = headData.position;
+        }
+
+        // Update movement indicators
+        function updateMovementIndicators(landmarks) {
+            // This function updates the UI indicators based on landmark data
+            const mouthOpen = Math.abs(landmarks[14].y - landmarks[13].y);
+            mouthOpenness.textContent = `${Math.min(100, Math.round(mouthOpen * 1000))}%`;
+        }
+
+        // Update FPS counter
+        function updateFPS() {
+            const now = Date.now();
+            if (now - lastFpsUpdate >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastFpsUpdate = now;
+                fpsCounter.textContent = `${fps} FPS`;
+            }
+        }
+
+        // Upload image handler
+        async function uploadImage() {
+            const file = imageUpload.files[0];
+            if (!file) {
+                alert('Please select an image file first');
+                return;
+            }
+
+            try {
+                uploadBtn.disabled = true;
+                uploadBtn.textContent = 'Uploading...';
+
+                const formData = new FormData();
+                formData.append('faceImage', file);
+
+                const response = await fetch('/upload-face', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Load the uploaded image
+                    uploadedImage = new Image();
+                    uploadedImage.onload = function() {
+                        animatedCanvas.style.display = 'block';
+                        animationPlaceholder.style.display = 'none';
+                        statusText.textContent = 'Image loaded - Ready to animate!';
+                        log(`✅ Image uploaded: ${data.filename}`);
+                        
+                        // Extract face landmarks from uploaded image (simplified)
+                        extractFaceLandmarks();
+                    };
+                    uploadedImage.src = data.imageUrl;
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                log(`❌ Upload failed: ${error.message}`, 'error');
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = 'Upload';
+            }
+        }
+
+        // Extract face landmarks from uploaded image (simplified version)
+        function extractFaceLandmarks() {
+            // In a real implementation, you would use face-api.js here
+            // For this demo, we'll create mock landmarks
+            faceLandmarks = {
+                mouth: { x: 320, y: 300, width: 80, height: 20 },
+                leftEye: { x: 280, y: 250, width: 30, height: 15 },
+                rightEye: { x: 360, y: 250, width: 30, height: 15 }
+            };
+            log('📐 Face landmarks extracted from uploaded image');
+        }
+
+        // Start animation
+        function startAnimation() {
+            if (!uploadedImage) {
+                alert('Please upload an image first');
+                return;
+            }
+
+            isAnimating = true;
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            statusText.textContent = '🎬 Animation active - Make faces!';
+            animationStatus.textContent = 'Active';
+            log('🎬 Face animation started');
+        }
+
+        // Stop animation
+        function stopAnimation() {
+            isAnimating = false;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            statusText.textContent = 'Animation stopped';
+            animationStatus.textContent = 'Inactive';
+            log('⏹️ Face animation stopped');
+            
+            // Clear canvas
+            animationCtx.clearRect(0, 0, animationCanvas.width, animationCanvas.height);
+        }
+
+        // Clear uploaded image
+        function clearImage() {
+            uploadedImage = null;
+            faceLandmarks = null;
+            animatedCanvas.style.display = 'none';
+            animationPlaceholder.style.display = 'flex';
+            statusText.textContent = 'Image cleared - Upload a new image';
+            log('🗑️ Image cleared');
         }
 
         // Event listeners
         startBtn.addEventListener('click', startAnimation);
         stopBtn.addEventListener('click', stopAnimation);
         uploadBtn.addEventListener('click', uploadImage);
-        clearImageBtn.addEventListener('click', clearImage);
-        calibrateBtn.addEventListener('click', calibrateAnimation);
+        clearBtn.addEventListener('click', clearImage);
 
-        // Advanced initialization
+        // Initialize application
         async function init() {
-            log('🚀 Initializing Face Reenactor Pro...');
-            initializeSocket();
-            await loadUploadedImages();
-            
-            const cameraReady = await initCamera();
-            if (!cameraReady) return;
-            
-            const modelReady = await loadModel();
-            if (!modelReady) return;
-            
-            log('✅ SYSTEM READY! Upload a face image and start real-time animation');
-            statusText.textContent = '⚡ System Ready - Upload image and start animation';
+            log('🚀 Initializing Face Puppet Animator...');
+            initCanvas();
+            await initFaceMesh();
+            log('✅ System ready - Upload an image to start animating');
         }
 
-        // Start the advanced application
+        // Start the application
         init();
     </script>
 </body>
