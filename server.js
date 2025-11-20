@@ -3,18 +3,8 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
-const http = require('http');
-const socketIo = require('socket.io');
 
 const app = express();
-const server = http.createServer(app);
-const io = socketIo(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
-
 const PORT = process.env.PORT || 3000;
 
 // Middleware
@@ -41,7 +31,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
+    fileSize: 10 * 1024 * 1024
   },
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
@@ -61,29 +51,6 @@ if (!fs.existsSync('uploads')) {
   fs.mkdirSync('uploads', { recursive: true });
 }
 
-// Store active sessions
-let activeSessions = new Map();
-
-// Socket.io for real-time communication
-io.on('connection', (socket) => {
-  console.log(`🔗 Client connected: ${socket.id}`);
-  
-  socket.on('start-animation', (data) => {
-    activeSessions.set(socket.id, data);
-    console.log(`🎬 Animation started: ${socket.id}`);
-  });
-  
-  socket.on('face-movement', (data) => {
-    // Broadcast movement data to other clients if needed
-    socket.broadcast.emit('face-update', data);
-  });
-  
-  socket.on('disconnect', () => {
-    activeSessions.delete(socket.id);
-    console.log(`🔌 Client disconnected: ${socket.id}`);
-  });
-});
-
 // Routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -99,19 +66,12 @@ app.post('/upload-face', upload.single('faceImage'), (req, res) => {
       });
     }
 
-    const imageData = {
-      filename: req.file.filename,
-      originalName: req.file.originalname,
-      url: `/uploads/${req.file.filename}`,
-      uploadTime: Date.now()
-    };
-
-    console.log(`🖼️ Image uploaded: ${imageData.originalName}`);
+    console.log(`🖼️ Image uploaded: ${req.file.originalname}`);
     
     res.json({
       success: true,
-      imageUrl: imageData.url,
-      filename: imageData.originalName,
+      imageUrl: `/uploads/${req.file.filename}`,
+      filename: req.file.originalname,
       message: 'Face image uploaded successfully'
     });
     
@@ -124,19 +84,8 @@ app.post('/upload-face', upload.single('faceImage'), (req, res) => {
   }
 });
 
-// Get server status
-app.get('/status', (req, res) => {
-  res.json({
-    status: '🎭 Face Puppet Animator Running',
-    activeSessions: activeSessions.size,
-    timestamp: Date.now()
-  });
-});
-
 // Start server
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🎭 Face Puppet Animator running on port ${PORT}`);
-  console.log(`🔗 WebSocket: Enabled for real-time animation`);
-  console.log(`🖼️ Image Upload: Ready`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🎭 Talking Photo Animator running on port ${PORT}`);
   console.log(`⚡ Access at: http://localhost:${PORT}`);
 });
