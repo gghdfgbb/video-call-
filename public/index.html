@@ -1,852 +1,294 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎭 Talking Photo Animator - Real Mouth Movement</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Talking Photo Animator - Real Mouth Movement</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: white;
+      min-height: 100vh;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .header {
+      text-align: center; padding: 30px; background: rgba(255,255,255,0.1);
+      border-radius: 20px; backdrop-filter: blur(10px); margin-bottom: 30px;
+    }
+    .header h1 {
+      font-size: 3rem; background: linear-gradient(45deg, #ff9a9e, #fad0c4, #fad0c4);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+    @media (max-width: 968px) { .main-content { grid-template-columns: 1fr; } }
 
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
-            min-height: 100vh;
-            color: white;
-            overflow-x: hidden;
-        }
+    .section {
+      background: rgba(255,255,255,0.08); backdrop-filter: blur(12px);
+      border-radius: 20px; padding: 25px; border: 1px solid rgba(255,255,255,0.2);
+    }
+    .section-title { font-size: 1.6rem; color: #4ecdc4; margin-bottom: 20px; text-align: center; }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+    .image-container {
+      position: relative; background: #000; border-radius: 15px; overflow: hidden;
+      margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    #uploadedImage, #animatedCanvas {
+      width: 100%; height: auto; max-height: 500px; object-fit: contain; display: none;
+    }
+    .placeholder {
+      height: 400px; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; color: #aaa; font-size: 1.2rem;
+    }
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 25px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+    .btn {
+      padding: 14px 28px; border: none; border-radius: 50px; font-weight: bold;
+      cursor: pointer; transition: 0.3s; margin: 8px; text-transform: uppercase;
+    }
+    .btn-primary { background: #4CAF50; color: white; }
+    .btn-primary:hover { background: #45a049; transform: translateY(-3px); }
+    .btn-danger { background: #f44336; color: white; }
+    .btn-warning { background: #ff9800; color: white; }
 
-        .header h1 {
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+    .controls { text-align: center; margin: 20px 0; }
+    .status { padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; text-align: center; }
 
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-
-        @media (max-width: 1024px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .upload-section, .animation-section {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            text-align: center;
-            color: #4ecdc4;
-            font-weight: bold;
-        }
-
-        .image-container {
-            position: relative;
-            width: 100%;
-            background: #000;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-
-        #uploadedImage {
-            width: 100%;
-            height: 400px;
-            object-fit: contain;
-            display: none;
-        }
-
-        #animatedCanvas {
-            width: 100%;
-            height: 400px;
-            display: none;
-        }
-
-        .placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 400px;
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 1.1rem;
-            text-align: center;
-        }
-
-        .upload-controls {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        .file-input-wrapper {
-            position: relative;
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .file-input {
-            width: 100%;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px dashed rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            color: white;
-            cursor: pointer;
-        }
-
-        .file-input:hover {
-            border-color: #4ecdc4;
-        }
-
-        .file-input::file-selector-button {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-right: 10px;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 25px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(45deg, #4CAF50, #45a049);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
-        }
-
-        .btn-danger {
-            background: linear-gradient(45deg, #f44336, #da190b);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
-        }
-
-        .btn-warning {
-            background: linear-gradient(45deg, #ff9800, #f57c00);
-            color: white;
-        }
-
-        .controls {
-            display: flex;
-            gap: 12px;
-            margin: 20px 0;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .animation-controls {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .control-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .control-value {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #4ecdc4;
-            margin-bottom: 5px;
-        }
-
-        .status {
-            font-size: 1rem;
-            margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-left: 4px solid #4ecdc4;
-        }
-
-        .logs {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
-            padding: 15px;
-            max-height: 200px;
-            overflow-y: auto;
-            margin-top: 20px;
-        }
-
-        .log-entry {
-            padding: 5px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top: 4px solid #4ecdc4;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+    .spinner {
+      border: 4px solid #333; border-top: 4px solid #4ecdc4; border-radius: 50%;
+      width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🎭 Talking Photo Animator</h1>
-            <p>Upload any face image - Watch the mouth move and talk</p>
-        </div>
-
-        <div class="main-content">
-            <div class="upload-section">
-                <h2 class="section-title">📁 Upload Face Image</h2>
-                
-                <div class="upload-controls">
-                    <div class="file-input-wrapper">
-                        <input type="file" id="imageUpload" class="file-input" accept="image/*" />
-                    </div>
-                    <button id="uploadBtn" class="btn btn-primary">Upload Face</button>
-                </div>
-
-                <div class="image-container">
-                    <img id="uploadedImage" alt="Uploaded Face">
-                    <div id="imagePlaceholder" class="placeholder">
-                        <div>📷</div>
-                        <div>Upload a face image to animate the mouth</div>
-                    </div>
-                </div>
-
-                <div class="status" id="statusText">
-                    Ready to upload face image
-                </div>
-
-                <div class="loading" id="loading">
-                    <div class="spinner"></div>
-                    <p>Processing face image...</p>
-                </div>
-            </div>
-
-            <div class="animation-section">
-                <h2 class="section-title">🎬 Animated Talking Photo</h2>
-                
-                <div class="image-container">
-                    <canvas id="animatedCanvas"></canvas>
-                    <div id="animationPlaceholder" class="placeholder">
-                        <div>🎭</div>
-                        <div>Animated mouth will appear here</div>
-                    </div>
-                </div>
-
-                <div class="controls">
-                    <button id="startBtn" class="btn btn-primary">Start Talking</button>
-                    <button id="stopBtn" class="btn btn-danger" disabled>Stop Talking</button>
-                    <button id="resetBtn" class="btn btn-warning">Reset Image</button>
-                </div>
-
-                <div class="animation-controls">
-                    <div class="control-item">
-                        <div class="control-value" id="mouthOpenness">0%</div>
-                        <div>Mouth Open</div>
-                    </div>
-                    <div class="control-item">
-                        <div class="control-value" id="animationSpeed">Medium</div>
-                        <div>Speed</div>
-                    </div>
-                    <div class="control-item">
-                        <div class="control-value" id="animationState">Stopped</div>
-                        <div>State</div>
-                    </div>
-                    <div class="control-item">
-                        <div class="control-value" id="frameRate">0 FPS</div>
-                        <div>Frame Rate</div>
-                    </div>
-                </div>
-
-                <div class="logs">
-                    <h3>Animation Log</h3>
-                    <div id="logContainer"></div>
-                </div>
-            </div>
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1>Talking Photo Animator</h1>
+      <p>Upload any face → Watch it talk with real mouth movement!</p>
     </div>
 
-    <!-- Include face-api.js for face landmark detection -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.1/dist/face-landmarks-detection.min.js"></script>
+    <div class="main-content">
+      <div class="section">
+        <h2 class="section-title">Upload Face</h2>
+        <input type="file" id="imageUpload" accept="image/*" style="display:block; margin:20px auto; padding:10px;" />
+        <button id="uploadBtn" class="btn btn-primary">Upload & Process</button>
 
-    <script>
-        // Global variables
-        let uploadedImage = null;
-        let originalImage = null;
-        let faceLandmarks = null;
-        let animationCanvas, animationCtx;
-        let isAnimating = false;
-        let animationFrame = null;
-        let frameCount = 0;
-        let lastFpsUpdate = Date.now();
-        let mouthOpenness = 0;
-        let mouthDirection = 1;
+        <div class="image-container">
+          <img id="uploadedImage" alt="Your face" />
+          <div class="placeholder">Upload a clear face photo</div>
+        </div>
 
-        // DOM elements
-        const uploadedImageEl = document.getElementById('uploadedImage');
-        const animatedCanvas = document.getElementById('animatedCanvas');
-        const imagePlaceholder = document.getElementById('imagePlaceholder');
-        const animationPlaceholder = document.getElementById('animationPlaceholder');
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const imageUpload = document.getElementById('imageUpload');
-        const statusText = document.getElementById('statusText');
-        const logContainer = document.getElementById('logContainer');
-        const mouthOpennessEl = document.getElementById('mouthOpenness');
-        const animationState = document.getElementById('animationState');
-        const frameRate = document.getElementById('frameRate');
-        const loading = document.getElementById('loading');
+        <div class="status" id="statusText">Ready</div>
+        <div id="loading" style="display:none;"><div class="spinner"></div><p>Detecting face & preparing animation...</p></div>
+      </div>
 
-        // Initialize canvas
-        function initCanvas() {
-            animationCanvas = document.getElementById('animatedCanvas');
-            animationCtx = animationCanvas.getContext('2d');
-        }
+      <div class="section">
+        <h2 class="section-title">Animated Result</h2>
+        <div class="image-container">
+          <canvas id="animatedCanvas"></canvas>
+          <div class="placeholder">Animation will appear here</div>
+        </div>
 
-        // Logging function
-        function log(message, type = 'info') {
-            const logEntry = document.createElement('div');
-            logEntry.className = 'log-entry';
-            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-            
-            if (type === 'error') {
-                logEntry.style.color = '#ff6b6b';
-            } else if (type === 'success') {
-                logEntry.style.color = '#51cf66';
+        <div class="controls">
+          <button id="startBtn" class="btn btn-primary" disabled>Start Talking</button>
+          <button id="stopBtn" class="btn btn-danger" disabled>Stop</button>
+          <button id="resetBtn" class="btn btn-warning">Reset</button>
+        </div>
+
+        <div class="status">
+          Mouth Open: <strong id="mouthOpenness">0%</strong> | 
+          State: <strong id="animationState">Stopped</strong> | 
+          FPS: <strong id="frameRate">0</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TensorFlow.js + Face Mesh -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.1"></script>
+
+  <script>
+    // Global vars
+    let originalImage = null;
+    let faceLandmarks = null;
+    let baseLandmarks = null;
+    let isAnimating = false;
+    let animationFrame = null;
+    let frameCount = 0;
+    let lastFpsTime = 0;
+
+    const canvas = document.getElementById('animatedCanvas');
+    const ctx = canvas.getContext('2d');
+    const uploadedImg = document.getElementById('uploadedImage');
+
+    // Elements
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileInput = document.getElementById('imageUpload');
+    const statusText = document.getElementById('statusText');
+    const loading = document.getElementById('loading');
+
+    // Realistic mouth deformation
+    function deformMouthRealistically(openness) {
+      if (!originalImage || !baseLandmarks) return;
+
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const newData = ctx.createImageData(canvas.width, canvas.height);
+      const w = canvas.width, h = canvas.height;
+
+      // Mouth region bounds
+      const mouthTop = Math.min(...baseLandmarks.slice(0, 468).map(p => p[1])) * 0.9;
+      const mouthBottom = Math.max(...baseLandmarks.slice(0, 468).map(p => p[1])) * 1.1;
+      const mouthLeft = Math.min(...baseLandmarks.slice(0, 468).map(p => p[0])) * 0.9;
+      const mouthRight = Math.max(...baseLandmarks.slice(0, 468).map(p => p[0])) * 1.1;
+
+      const centerY = (mouthTop + mouthBottom) / 2;
+
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          let srcX = x;
+          let srcY = y;
+
+          if (x > mouthLeft && x < mouthRight && y > mouthTop && y < mouthBottom) {
+            const dy = y - centerY;
+            const influence = 1 - Math.abs(dy) / ((mouthBottom - mouthTop) / 2);
+            if (influence > 0) {
+              const push = openness * 80 * influence;
+              if (dy > 0) srcY += push; // lower lip down
+              else srcY += push * 0.4; // upper lip slight down
             }
-            
-            logContainer.appendChild(logEntry);
-            logContainer.scrollTop = logContainer.scrollHeight;
-            
-            if (logContainer.children.length > 10) {
-                logContainer.removeChild(logContainer.firstChild);
-            }
+          }
+
+          srcX = Math.max(0, Math.min(w - 1, srcX));
+          srcY = Math.max(0, Math.min(h - 1, srcY));
+
+          const i = (y * w + x) * 4;
+          const si = (Math.floor(srcY) * w + Math.floor(srcX)) * 4;
+
+          newData.data[i]   = imgData.data[si];
+          newData.data[i+1] = imgData.data[si+1];
+          newData.data[i+2] = imgData.data[si+2];
+          newData.data[i+3] = imgData.data[si+3];
         }
+      }
 
-        // Detect face landmarks using TensorFlow.js
-        async function detectFaceLandmarks(image) {
-            loading.style.display = 'block';
-            statusText.textContent = 'Detecting face landmarks...';
+      ctx.putImageData(newData, 0, 0);
 
-            try {
-                // Load the model
-                const model = await faceLandmarksDetection.load(
-                    faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
-                    { maxFaces: 1 }
-                );
-
-                // Detect faces
-                const predictions = await model.estimateFaces({
-                    input: image,
-                    returnTensors: false,
-                    flipHorizontal: false,
-                    predictIrises: false
-                });
-
-                if (predictions.length === 0) {
-                    throw new Error('No face detected in the image');
-                }
-
-                const face = predictions[0];
-                const landmarks = face.scaledMesh; // 468 points
-
-                // Extract mouth landmarks (key points for mouth animation)
-                const mouthPoints = extractMouthLandmarks(landmarks);
-                
-                loading.style.display = 'none';
-                statusText.textContent = 'Face detected! Ready to animate mouth';
-                log('✅ Face landmarks detected - 468 points extracted');
-                
-                return {
-                    allLandmarks: landmarks,
-                    mouth: mouthPoints,
-                    boundingBox: face.boundingBox
-                };
-
-            } catch (error) {
-                loading.style.display = 'none';
-                log(`❌ Face detection failed: ${error.message}`, 'error');
-                statusText.textContent = 'Face detection failed';
-                return null;
-            }
+      // Draw teeth when open
+      if (openness > 0.6) {
+        const centerX = w / 2;
+        const centerYPos = centerY + 20;
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
+        for (let i = 0; i < 8; i++) {
+          const x = centerX - 30 + i * 8;
+          ctx.fillRect(x, centerYPos - 8, 6, 16);
         }
+      }
+    }
 
-        // Extract key mouth landmarks from 468 points
-        function extractMouthLandmarks(landmarks) {
-            // MediaPipe Face Mesh mouth indices
-            return {
-                // Outer mouth points (20 points)
-                outer: [61, 146, 91, 181, 84, 17, 314, 405, 320, 307, 375, 321, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95],
-                // Inner mouth points (20 points)
-                inner: [78, 95, 88, 178, 87, 14, 317, 402, 318, 324, 308, 415, 310, 311, 312, 13, 82, 81, 80, 191],
-                // Key points for mouth movement
-                upperLip: [13, 311, 312, 310, 415, 308, 324, 318, 402, 317],
-                lowerLip: [14, 87, 88, 178, 87, 86, 85, 84, 83, 82],
-                mouthCenter: [13, 14], // Upper and lower lip center
-                mouthCorners: [61, 291] // Left and right mouth corners
-            };
-        }
+    function animate() {
+      if (!isAnimating) return;
 
-        // REAL MOUTH ANIMATION - Warps the actual image pixels
-        function animateMouth() {
-            if (!uploadedImage || !faceLandmarks) return;
+      frameCount++;
+      const now = performance.now();
+      if (now - lastFpsTime > 1000) {
+        document.getElementById('frameRate').textContent = frameCount + " FPS";
+        frameCount = 0;
+        lastFpsTime = now;
+      }
 
-            frameCount++;
+      // Natural talking rhythm
+      const time = now * 0.003;
+      const openness = (Math.sin(time * 4) * 0.4 + Math.sin(time * 1.7) * 0.3 + 0.7);
 
-            // Update mouth openness (sin wave for natural movement)
-            mouthOpenness += mouthDirection * 0.1;
-            if (mouthOpenness > 1 || mouthOpenness < 0) {
-                mouthDirection *= -1;
-            }
+      ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
+      deformMouthRealistically(openness);
 
-            // Clear canvas
-            animationCtx.clearRect(0, 0, animationCanvas.width, animationCanvas.height);
-            
-            // Draw the original image
-            animationCtx.drawImage(originalImage, 0, 0, animationCanvas.width, animationCanvas.height);
-            
-            // Apply mouth warping
-            warpMouthRegion(mouthOpenness);
-            
-            // Update UI
-            mouthOpennessEl.textContent = `${Math.round(mouthOpenness * 100)}%`;
-            
-            // Continue animation
-            if (isAnimating) {
-                animationFrame = requestAnimationFrame(animateMouth);
-            }
+      document.getElementById('mouthOpenness').textContent = Math.round(openness * 100) + "%";
 
-            // Update FPS counter
-            updateFPS();
-        }
+      animationFrame = requestAnimationFrame(animate);
+    }
 
-        // WARP THE ACTUAL MOUTH REGION - This moves the pixels in the uploaded image
-        function warpMouthRegion(openness) {
-            const landmarks = faceLandmarks.allLandmarks;
-            const mouth = faceLandmarks.mouth;
-            
-            if (!landmarks || !mouth) return;
+    async function processImage(file) {
+      loading.style.display = "block";
+      statusText.textContent = "Uploading...";
 
-            // Get mouth bounding box
-            const mouthBox = calculateMouthBoundingBox(landmarks, mouth);
-            
-            // Save the region around the mouth
-            const mouthRegion = animationCtx.getImageData(
-                mouthBox.x, mouthBox.y, mouthBox.width, mouthBox.height
-            );
+      const form = new FormData();
+      form.append("faceImage", file);
 
-            // Clear the mouth area
-            animationCtx.clearRect(mouthBox.x, mouthBox.y, mouthBox.width, mouthBox.height);
-            
-            // Apply vertical stretch to simulate mouth opening
-            const stretchFactor = 1 + (openness * 0.8);
-            const newHeight = mouthBox.height * stretchFactor;
-            const yOffset = (newHeight - mouthBox.height) / 2;
+      const res = await fetch("/upload-face", { method: "POST", body: form });
+      const data = await res.json();
 
-            // Draw stretched mouth region
-            animationCtx.putImageData(mouthRegion, mouthBox.x, mouthBox.y - yOffset);
-            
-            // Add dark area for mouth cavity when open
-            if (openness > 0.3) {
-                drawMouthCavity(mouthBox, openness);
-            }
+      if (!data.success) throw new Error(data.error);
 
-            // Draw lip outline for better visibility
-            drawLipOutline(landmarks, mouth, openness);
-        }
+      const img = new Image();
+      img.onload = async () => {
+        // Resize canvas
+        const max = 600;
+        const ratio = Math.min(max / img.width, max / img.height);
+        canvas.width = img.width * ratio;
+        canvas.height = img.height * ratio;
 
-        // Calculate mouth bounding box from landmarks
-        function calculateMouthBoundingBox(landmarks, mouth) {
-            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-            
-            // Use outer mouth points to calculate bounds
-            mouth.outer.forEach(pointIndex => {
-                const point = landmarks[pointIndex];
-                if (point) {
-                    minX = Math.min(minX, point[0]);
-                    minY = Math.min(minY, point[1]);
-                    maxX = Math.max(maxX, point[0]);
-                    maxY = Math.max(maxY, point[1]);
-                }
-            });
+        uploadedImg.src = img.src;
+        uploadedImg.style.display = "block";
+        canvas.style.display = "block";
+        originalImage = img;
 
-            // Add padding
-            const padding = 10;
-            return {
-                x: Math.max(0, minX - padding),
-                y: Math.max(0, minY - padding),
-                width: Math.min(animationCanvas.width - minX, maxX - minX + padding * 2),
-                height: Math.min(animationCanvas.height - minY, maxY - minY + padding * 2)
-            };
-        }
+        // Detect face
+        statusText.textContent = "Detecting face...";
+        const model = await faceLandmarksDetection.load(
+          faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
+        );
+        const faces = await model.estimateFaces({ input: img });
 
-        // Draw mouth cavity (black area when mouth is open)
-        function drawMouthCavity(mouthBox, openness) {
-            const centerX = mouthBox.x + mouthBox.width / 2;
-            const centerY = mouthBox.y + mouthBox.height / 2;
-            const cavityHeight = mouthBox.height * openness * 0.6;
-            
-            animationCtx.save();
-            animationCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-            animationCtx.beginPath();
-            animationCtx.ellipse(centerX, centerY, mouthBox.width * 0.4, cavityHeight, 0, 0, Math.PI * 2);
-            animationCtx.fill();
-            animationCtx.restore();
-        }
+        if (faces.length === 0) throw new Error("No face found!");
 
-        // Draw lip outline for better visibility
-        function drawLipOutline(landmarks, mouth, openness) {
-            animationCtx.save();
-            animationCtx.strokeStyle = 'rgba(255, 0, 0, 0.6)';
-            animationCtx.lineWidth = 2;
-            
-            // Draw upper lip
-            animationCtx.beginPath();
-            mouth.upperLip.forEach((pointIndex, index) => {
-                const point = landmarks[pointIndex];
-                if (point) {
-                    if (index === 0) {
-                        animationCtx.moveTo(point[0], point[1]);
-                    } else {
-                        animationCtx.lineTo(point[0], point[1]);
-                    }
-                }
-            });
-            animationCtx.stroke();
+        faceLandmarks = faces[0];
+        baseLandmarks = JSON.parse(JSON.stringify(faces[0].scaledMesh));
 
-            // Draw lower lip (with vertical offset based on openness)
-            animationCtx.beginPath();
-            mouth.lowerLip.forEach((pointIndex, index) => {
-                const point = landmarks[pointIndex];
-                if (point) {
-                    const yOffset = point[1] + (openness * 15); // Move lower lip down when open
-                    if (index === 0) {
-                        animationCtx.moveTo(point[0], yOffset);
-                    } else {
-                        animationCtx.lineTo(point[0], yOffset);
-                    }
-                }
-            });
-            animationCtx.stroke();
-            
-            animationCtx.restore();
-        }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        startBtn.disabled = false;
+        statusText.textContent = "Ready! Click Start Talking";
+        loading.style.display = "none";
+      };
 
-        // Advanced mouth animation with mesh warping
-        function advancedMouthWarp(openness) {
-            if (!faceLandmarks) return;
+      img.src = data.imageUrl;
+    }
 
-            const landmarks = faceLandmarks.allLandmarks;
-            const mouth = faceLandmarks.mouth;
-            
-            // Clear and redraw base image
-            animationCtx.clearRect(0, 0, animationCanvas.width, animationCanvas.height);
-            animationCtx.drawImage(originalImage, 0, 0, animationCanvas.width, animationCanvas.height);
-            
-            // Create mouth opening effect
-            const mouthCenter = landmarks[13]; // Upper lip center
-            const lowerLipCenter = landmarks[14]; // Lower lip center
-            
-            if (mouthCenter && lowerLipCenter) {
-                // Calculate mouth opening distance
-                const openDistance = openness * 30;
-                
-                // Create gradient for mouth cavity
-                const gradient = animationCtx.createRadialGradient(
-                    mouthCenter[0], mouthCenter[1], 0,
-                    mouthCenter[0], mouthCenter[1], 40 + openDistance
-                );
-                gradient.addColorStop(0, '#000000');
-                gradient.addColorStop(1, '#333333');
-                
-                // Draw mouth cavity
-                animationCtx.save();
-                animationCtx.fillStyle = gradient;
-                animationCtx.beginPath();
-                animationCtx.ellipse(
-                    mouthCenter[0], 
-                    mouthCenter[1] + openDistance/2, 
-                    35 + openDistance * 0.5, 
-                    10 + openDistance, 
-                    0, 0, Math.PI * 2
-                );
-                animationCtx.fill();
-                
-                // Add teeth when mouth is open wide
-                if (openness > 0.5) {
-                    drawTeeth(mouthCenter, openDistance);
-                }
-                
-                animationCtx.restore();
-            }
-        }
+    // Event Listeners
+    uploadBtn.onclick = () => {
+      if (!fileInput.files[0]) return alert("Select an image first!");
+      processImage(fileInput.files[0]).catch(err => {
+        alert("Error: " + err.message);
+        loading.style.display = "none";
+      });
+    };
 
-        // Draw teeth in the mouth cavity
-        function drawTeeth(mouthCenter, openDistance) {
-            const toothWidth = 6;
-            const toothHeight = openDistance * 0.6;
-            const toothCount = 6;
-            const startX = mouthCenter[0] - (toothWidth * toothCount) / 2;
-            
-            animationCtx.fillStyle = '#ffffff';
-            for (let i = 0; i < toothCount; i++) {
-                animationCtx.fillRect(
-                    startX + i * toothWidth, 
-                    mouthCenter[1] - toothHeight/2, 
-                    toothWidth - 1, 
-                    toothHeight
-                );
-            }
-        }
+    startBtn.onclick = () => {
+      isAnimating = true;
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      document.getElementById('animationState').textContent = "Talking";
+      animate();
+    };
 
-        // Update FPS counter
-        function updateFPS() {
-            const now = Date.now();
-            if (now - lastFpsUpdate >= 1000) {
-                const currentFPS = frameCount;
-                frameCount = 0;
-                lastFpsUpdate = now;
-                frameRate.textContent = `${currentFPS} FPS`;
-            }
-        }
+    stopBtn.onclick = () => {
+      isAnimating = false;
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      document.getElementById('animationState').textContent = "Stopped";
+      cancelAnimationFrame(animationFrame);
+      if (originalImage) ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
+    };
 
-        // Upload and process image
-        async function uploadImage() {
-            const file = imageUpload.files[0];
-            if (!file) {
-                alert('Please select a face image first');
-                return;
-            }
-
-            try {
-                uploadBtn.disabled = true;
-                statusText.textContent = 'Uploading and processing image...';
-
-                const formData = new FormData();
-                formData.append('faceImage', file);
-
-                const response = await fetch('/upload-face', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Load the uploaded image
-                    uploadedImage = new Image();
-                    uploadedImage.crossOrigin = 'anonymous';
-                    
-                    uploadedImage.onload = async function() {
-                        // Show original image
-                        uploadedImageEl.src = this.src;
-                        uploadedImageEl.style.display = 'block';
-                        imagePlaceholder.style.display = 'none';
-                        
-                        // Store original image for animation
-                        originalImage = this;
-                        
-                        // Set canvas size to match image
-                        animationCanvas.width = this.width;
-                        animationCanvas.height = this.height;
-                        
-                        // Detect face landmarks
-                        faceLandmarks = await detectFaceLandmarks(this);
-                        
-                        if (faceLandmarks) {
-                            // Show animation canvas
-                            animatedCanvas.style.display = 'block';
-                            animationPlaceholder.style.display = 'none';
-                            
-                            // Draw initial state
-                            animationCtx.drawImage(this, 0, 0);
-                            
-                            startBtn.disabled = false;
-                            statusText.textContent = 'Ready! Click "Start Talking" to animate mouth';
-                            log('✅ Image processed - Mouth animation ready');
-                        }
-                    };
-                    
-                    uploadedImage.onerror = function() {
-                        log('❌ Failed to load image', 'error');
-                        statusText.textContent = 'Failed to load image';
-                    };
-                    
-                    uploadedImage.src = data.imageUrl;
-                    
-                } else {
-                    throw new Error(data.error);
-                }
-            } catch (error) {
-                log(`❌ Upload failed: ${error.message}`, 'error');
-                statusText.textContent = 'Upload failed';
-            } finally {
-                uploadBtn.disabled = false;
-            }
-        }
-
-        // Start animation
-        function startAnimation() {
-            if (!uploadedImage || !faceLandmarks) {
-                alert('Please upload and process an image first');
-                return;
-            }
-
-            isAnimating = true;
-            startBtn.disabled = true;
-            stopBtn.disabled = false;
-            resetBtn.disabled = false;
-            animationState.textContent = 'Talking';
-            statusText.textContent = 'Mouth animation active - Image is talking!';
-            log('🎬 Mouth animation started - Image is now talking');
-            
-            // Start the animation loop
-            animateMouth();
-        }
-
-        // Stop animation
-        function stopAnimation() {
-            isAnimating = false;
-            startBtn.disabled = false;
-            stopBtn.disabled = true;
-            animationState.textContent = 'Stopped';
-            statusText.textContent = 'Animation stopped';
-            log('⏹️ Mouth animation stopped');
-            
-            if (animationFrame) {
-                cancelAnimationFrame(animationFrame);
-            }
-        }
-
-        // Reset to original image
-        function resetImage() {
-            stopAnimation();
-            mouthOpenness = 0;
-            mouthOpennessEl.textContent = '0%';
-            
-            if (originalImage) {
-                animationCtx.clearRect(0, 0, animationCanvas.width, animationCanvas.height);
-                animationCtx.drawImage(originalImage, 0, 0);
-            }
-            
-            log('🔄 Image reset to original state');
-        }
-
-        // Event listeners
-        startBtn.addEventListener('click', startAnimation);
-        stopBtn.addEventListener('click', stopAnimation);
-        resetBtn.addEventListener('click', resetImage);
-        uploadBtn.addEventListener('click', uploadImage);
-
-        // Use advanced mouth warping in animation
-        function animateMouth() {
-            if (!uploadedImage || !faceLandmarks) return;
-
-            frameCount++;
-            
-            // Update mouth openness
-            mouthOpenness += mouthDirection * 0.08;
-            if (mouthOpenness > 1 || mouthOpenness < 0) {
-                mouthDirection *= -1;
-            }
-            
-            // Use advanced mouth warping
-            advancedMouthWarp(mouthOpenness);
-            
-            // Update UI
-            mouthOpennessEl.textContent = `${Math.round(mouthOpenness * 100)}%`;
-            
-            // Continue animation
-            if (isAnimating) {
-                animationFrame = requestAnimationFrame(animateMouth);
-            }
-            
-            updateFPS();
-        }
-
-        // Initialize application
-        function init() {
-            log('🚀 Initializing Talking Photo Animator...');
-            initCanvas();
-            log('✅ System ready - Upload a face image to animate mouth');
-        }
-
-        // Start the application
-        init();
-    </script>
+    resetBtn.onclick = () => {
+      stopBtn.click();
+      document.getElementById('mouthOpenness').textContent = "0%";
+    };
+  </script>
 </body>
 </html>
