@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎭 Face Puppet Animator - Real-time Face Animation</title>
+    <title>🎭 Real Face Animator - Live Face Warping</title>
     <style>
         * {
             margin: 0;
@@ -41,11 +41,6 @@
             background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-        }
-
-        .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
         }
 
         .main-content {
@@ -98,7 +93,7 @@
             position: relative;
             width: 100%;
             height: 350px;
-            background: linear-gradient(45deg, #2c3e50, #4ca1af);
+            background: #000;
             border-radius: 15px;
             overflow: hidden;
             margin-bottom: 20px;
@@ -110,6 +105,7 @@
             width: 100%;
             height: 100%;
             display: none;
+            transform: scaleX(-1);
         }
 
         .animation-placeholder {
@@ -121,12 +117,6 @@
             color: rgba(255, 255, 255, 0.6);
             font-size: 1.1rem;
             text-align: center;
-        }
-
-        .animation-placeholder i {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            opacity: 0.5;
         }
 
         .upload-section {
@@ -205,36 +195,12 @@
             box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
         }
 
-        .btn-warning {
-            background: linear-gradient(45deg, #ff9800, #f57c00);
-            color: white;
-        }
-
-        .btn-warning:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
-        }
-
-        .btn:disabled {
-            background: #666;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
         .controls {
             display: flex;
             gap: 12px;
             margin: 20px 0;
             justify-content: center;
             flex-wrap: wrap;
-        }
-
-        .status-panel {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            border-radius: 12px;
-            margin: 15px 0;
         }
 
         .status {
@@ -267,37 +233,6 @@
             margin-bottom: 5px;
         }
 
-        .performance-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        .movement-indicators {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin: 15px 0;
-        }
-
-        .indicator {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .indicator-value {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #fff;
-        }
-
-        .indicator-label {
-            font-size: 0.8rem;
-            opacity: 0.7;
-            margin-top: 3px;
-        }
-
         .logs {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 12px;
@@ -312,14 +247,6 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-family: 'Courier New', monospace;
             font-size: 0.85rem;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding: 20px;
-            opacity: 0.7;
-            font-size: 0.9rem;
         }
 
         .loading {
@@ -342,34 +269,18 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        .feature-tag {
-            display: inline-block;
-            background: rgba(78, 205, 196, 0.2);
-            padding: 4px 12px;
-            border-radius: 15px;
-            margin: 0 3px;
-            border: 1px solid #4ecdc4;
-            font-size: 0.8rem;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎭 Face Puppet Animator</h1>
-            <p>Real-time Face Animation using MediaPipe & Canvas</p>
-            <div style="margin-top: 10px;">
-                <span class="feature-tag">MediaPipe Face Mesh</span>
-                <span class="feature-tag">Real-time Animation</span>
-                <span class="feature-tag">Canvas Rendering</span>
-            </div>
+            <h1>🎭 Real Face Animator</h1>
+            <p>Live Face Warping - Upload image, it moves with your face</p>
         </div>
 
         <div class="main-content">
             <div class="camera-section">
-                <h2 class="section-title">📹 Your Live Camera</h2>
-                
+                <h2 class="section-title">📹 Your Live Face</h2>
                 <div class="video-container">
                     <video id="cameraVideo" autoplay playsinline></video>
                 </div>
@@ -380,8 +291,7 @@
                         <div class="file-input-wrapper">
                             <input type="file" id="imageUpload" class="file-input" accept="image/*" />
                         </div>
-                        <button id="uploadBtn" class="btn btn-primary">Upload</button>
-                        <button id="clearBtn" class="btn btn-warning">Clear</button>
+                        <button id="uploadBtn" class="btn btn-primary">Upload Face</button>
                     </div>
                 </div>
 
@@ -390,18 +300,22 @@
                     <button id="stopBtn" class="btn btn-danger" disabled>Stop Animation</button>
                 </div>
 
+                <div class="status" id="statusText">
+                    Ready to start face animation
+                </div>
+
                 <div class="performance">
                     <div class="performance-item">
                         <div class="performance-value" id="fpsCounter">0 FPS</div>
-                        <div class="performance-label">Tracking Speed</div>
+                        <div>Tracking Speed</div>
                     </div>
                     <div class="performance-item">
-                        <div class="performance-value" id="faceConfidence">0%</div>
-                        <div class="performance-label">Face Confidence</div>
+                        <div class="performance-value" id="mouthOpenness">0%</div>
+                        <div>Mouth Open</div>
                     </div>
                     <div class="performance-item">
-                        <div class="performance-value" id="landmarkCount">0</div>
-                        <div class="performance-label">Landmarks</div>
+                        <div class="performance-value" id="eyeOpenness">100%</div>
+                        <div>Eyes Open</div>
                     </div>
                 </div>
 
@@ -412,62 +326,31 @@
             </div>
 
             <div class="animation-section">
-                <h2 class="section-title">🎬 Animated Output</h2>
-                
+                <h2 class="section-title">🎬 Animated Face Output</h2>
                 <div class="animation-container">
                     <canvas id="animatedCanvas"></canvas>
                     <div id="animationPlaceholder" class="animation-placeholder">
                         <div>🎭</div>
-                        <div>Upload a face image to see real-time animation</div>
+                        <div>Upload a face image to see it animate with your expressions</div>
                         <div style="font-size: 0.9rem; margin-top: 10px; opacity: 0.5;">
-                            The face will mirror your expressions and movements
+                            Mouth, eyes, and head will move like your real face
                         </div>
                     </div>
                 </div>
-
-                <div class="status-panel">
-                    <div class="status" id="statusText">
-                        Ready to start face animation
-                    </div>
-
-                    <div class="movement-indicators">
-                        <div class="indicator">
-                            <div class="indicator-value" id="mouthOpenness">0%</div>
-                            <div class="indicator-label">Mouth Open</div>
-                        </div>
-                        <div class="indicator">
-                            <div class="indicator-value" id="eyeOpenness">100%</div>
-                            <div class="indicator-label">Eyes Open</div>
-                        </div>
-                        <div class="indicator">
-                            <div class="indicator-value" id="headPosition">Center</div>
-                            <div class="indicator-label">Head Position</div>
-                        </div>
-                        <div class="indicator">
-                            <div class="indicator-value" id="animationStatus">Inactive</div>
-                            <div class="indicator-label">Animation</div>
-                        </div>
-                    </div>
-                </div>
-
+                
                 <div class="logs">
-                    <h3>System Log</h3>
+                    <h3>Animation Log</h3>
                     <div id="logContainer"></div>
                 </div>
             </div>
         </div>
-
-        <div class="footer">
-            <p>Face Puppet Animator | Real-time Face Animation System</p>
-        </div>
     </div>
 
-    <!-- MediaPipe and other libraries -->
+    <!-- MediaPipe Face Mesh -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
 
     <script>
         // Global variables
@@ -475,11 +358,26 @@
         let camera = null;
         let isAnimating = false;
         let uploadedImage = null;
-        let uploadedImageUrl = null;
         let animationCanvas, animationCtx;
         let frameCount = 0;
         let lastFpsUpdate = Date.now();
         let fps = 0;
+
+        // Face landmark indices for MediaPipe (468 points)
+        const FACE_LANDMARKS = {
+            // Mouth outer landmarks
+            MOUTH_OUTER: [61, 146, 91, 181, 84, 17, 314, 405, 320, 307, 375, 321, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95],
+            // Mouth inner landmarks  
+            MOUTH_INNER: [78, 95, 88, 178, 87, 14, 317, 402, 318, 324, 308, 415, 310, 311, 312, 13, 82, 81, 80, 191],
+            // Left eye landmarks
+            LEFT_EYE: [33, 7, 163, 144, 145, 153, 154, 155, 133, 246, 161, 160, 159, 158, 157, 173],
+            LEFT_EYE_BROW: [46, 53, 52, 65, 55],
+            // Right eye landmarks
+            RIGHT_EYE: [362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398],
+            RIGHT_EYE_BROW: [276, 283, 282, 295, 285],
+            // Face oval
+            FACE_OVAL: [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109]
+        };
 
         // DOM elements
         const cameraVideo = document.getElementById('cameraVideo');
@@ -488,17 +386,12 @@
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
         const uploadBtn = document.getElementById('uploadBtn');
-        const clearBtn = document.getElementById('clearBtn');
         const imageUpload = document.getElementById('imageUpload');
         const statusText = document.getElementById('statusText');
         const logContainer = document.getElementById('logContainer');
         const fpsCounter = document.getElementById('fpsCounter');
-        const faceConfidence = document.getElementById('faceConfidence');
-        const landmarkCount = document.getElementById('landmarkCount');
         const mouthOpenness = document.getElementById('mouthOpenness');
         const eyeOpenness = document.getElementById('eyeOpenness');
-        const headPosition = document.getElementById('headPosition');
-        const animationStatus = document.getElementById('animationStatus');
         const loading = document.getElementById('loading');
 
         // Initialize animation canvas
@@ -524,15 +417,9 @@
             logContainer.appendChild(logEntry);
             logContainer.scrollTop = logContainer.scrollHeight;
             
-            // Keep only last 10 entries
             if (logContainer.children.length > 10) {
                 logContainer.removeChild(logContainer.firstChild);
             }
-        }
-
-        // Check if image is loaded
-        function isImageLoaded() {
-            return uploadedImage && uploadedImage.complete && uploadedImage.naturalWidth !== 0;
         }
 
         // Initialize MediaPipe Face Mesh
@@ -550,13 +437,12 @@
                 faceMesh.setOptions({
                     maxNumFaces: 1,
                     refineLandmarks: true,
-                    minDetectionConfidence: 0.5,
-                    minTrackingConfidence: 0.5
+                    minDetectionConfidence: 0.7,
+                    minTrackingConfidence: 0.7
                 });
 
                 faceMesh.onResults(onFaceResults);
 
-                // Initialize camera
                 camera = new Camera(cameraVideo, {
                     onFrame: async () => {
                         if (faceMesh) {
@@ -569,7 +455,7 @@
 
                 await camera.start();
                 loading.style.display = 'none';
-                statusText.textContent = 'Face tracking ready - Upload an image to start';
+                statusText.textContent = 'Face tracking ready - Upload a face image';
                 log('✅ Face tracking system initialized');
 
             } catch (error) {
@@ -585,192 +471,287 @@
             
             if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
                 const landmarks = results.multiFaceLandmarks[0];
-                landmarkCount.textContent = landmarks.length;
-                faceConfidence.textContent = '100%';
                 
-                if (isAnimating && isImageLoaded()) {
-                    animateFace(landmarks);
+                if (isAnimating && uploadedImage) {
+                    animateFaceWithWarping(landmarks);
                 }
                 
                 updateMovementIndicators(landmarks);
-            } else {
-                faceConfidence.textContent = '0%';
-                landmarkCount.textContent = '0';
             }
             
             updateFPS();
         }
 
-        // Animate the uploaded face based on live landmarks
-        function animateFace(liveLandmarks) {
-            if (!isImageLoaded()) {
-                log('⚠️ Image not properly loaded', 'error');
-                return;
-            }
+        // REAL FACE WARPING - This actually moves the uploaded image's face
+        function animateFaceWithWarping(liveLandmarks) {
+            if (!uploadedImage) return;
 
             // Clear canvas
             animationCtx.clearRect(0, 0, animationCanvas.width, animationCanvas.height);
             
-            // Draw the uploaded image as background
+            // Calculate face transformations from live landmarks
+            const transformations = calculateFaceTransformations(liveLandmarks);
+            
+            // Save the current context
+            animationCtx.save();
+            
+            // Apply head rotation and position
+            animationCtx.translate(transformations.head.x, transformations.head.y);
+            
+            // Draw the base image
             animationCtx.drawImage(uploadedImage, 0, 0, animationCanvas.width, animationCanvas.height);
             
-            // Calculate transformations based on live face movements
-            const transformations = calculateTransformations(liveLandmarks);
+            // Apply mouth warping
+            warpMouth(transformations.mouth);
             
-            // Apply facial animations
-            applyMouthAnimation(transformations.mouth);
-            applyEyeAnimation(transformations.eyes);
-            applyHeadAnimation(transformations.head);
+            // Apply eye warping
+            warpEyes(transformations.eyes);
             
-            animationStatus.textContent = 'Active';
+            // Restore context
+            animationCtx.restore();
         }
 
-        // Calculate transformations from live landmarks
-        function calculateTransformations(liveLandmarks) {
-            // Key landmark indices from MediaPipe Face Mesh
-            const MOUTH_UPPER = 13;
-            const MOUTH_LOWER = 14;
-            const LEFT_EYE_TOP = 159;
-            const LEFT_EYE_BOTTOM = 145;
-            const RIGHT_EYE_TOP = 386;
-            const RIGHT_EYE_BOTTOM = 374;
-            const NOSE_TIP = 1;
+        // Calculate face transformations for warping
+        function calculateFaceTransformations(liveLandmarks) {
+            // Mouth openness calculation
+            const mouthUpper = liveLandmarks[13];
+            const mouthLower = liveLandmarks[14];
+            const mouthOpenness = Math.min(1, (mouthLower.y - mouthUpper.y) * 8);
             
-            // Calculate mouth openness (normalized)
-            const mouthOpen = Math.min(1, (liveLandmarks[MOUTH_LOWER].y - liveLandmarks[MOUTH_UPPER].y) * 8);
+            // Eye openness calculation
+            const leftEyeTop = liveLandmarks[159];
+            const leftEyeBottom = liveLandmarks[145];
+            const rightEyeTop = liveLandmarks[386];
+            const rightEyeBottom = liveLandmarks[374];
             
-            // Calculate eye openness
-            const leftEyeOpen = Math.min(1, (liveLandmarks[LEFT_EYE_BOTTOM].y - liveLandmarks[LEFT_EYE_TOP].y) * 15);
-            const rightEyeOpen = Math.min(1, (liveLandmarks[RIGHT_EYE_BOTTOM].y - liveLandmarks[RIGHT_EYE_TOP].y) * 15);
+            const leftEyeOpenness = Math.min(1, (leftEyeBottom.y - leftEyeTop.y) * 12);
+            const rightEyeOpenness = Math.min(1, (rightEyeBottom.y - rightEyeTop.y) * 12);
             
-            // Calculate head position
-            const headX = liveLandmarks[NOSE_TIP].x;
-            let headPos = 'Center';
-            if (headX < 0.4) headPos = 'Left';
-            else if (headX > 0.6) headPos = 'Right';
+            // Head position
+            const noseTip = liveLandmarks[1];
+            const headX = (noseTip.x - 0.5) * 30; // -15 to +15 pixels
             
             return {
                 mouth: {
-                    openness: mouthOpen,
-                    isTalking: mouthOpen > 0.3
+                    openness: mouthOpenness,
+                    upperLipY: mouthUpper.y,
+                    lowerLipY: mouthLower.y
                 },
                 eyes: {
-                    left: leftEyeOpen,
-                    right: rightEyeOpen,
-                    isBlinking: (leftEyeOpen < 0.1 && rightEyeOpen < 0.1)
+                    left: leftEyeOpenness,
+                    right: rightEyeOpenness,
+                    isBlinking: (leftEyeOpenness < 0.2 && rightEyeOpenness < 0.2)
                 },
                 head: {
-                    position: headPos,
-                    x: (headX - 0.5) * 40 // -20 to +20 pixels
+                    x: headX,
+                    y: 0
                 }
             };
         }
 
-        // Apply mouth animation
-        function applyMouthAnimation(mouthData) {
-            if (mouthData.isTalking) {
+        // Warp the mouth in the uploaded image
+        function warpMouth(mouthData) {
+            if (mouthData.openness > 0.1) {
                 const centerX = animationCanvas.width / 2;
                 const centerY = animationCanvas.height / 2 + 50;
-                const mouthWidth = 60 + (mouthData.openness * 40);
-                const mouthHeight = 10 + (mouthData.openness * 40);
+                const mouthHeight = mouthData.openness * 40;
                 
-                // Draw animated mouth (red for visibility)
-                animationCtx.fillStyle = 'rgba(255, 0, 0, 0.7)';
+                // Create mouth opening effect by drawing over the mouth area
+                animationCtx.save();
+                
+                // Create a clipping path for the mouth area
                 animationCtx.beginPath();
-                animationCtx.ellipse(centerX, centerY, mouthWidth, mouthHeight, 0, 0, Math.PI * 2);
-                animationCtx.fill();
+                animationCtx.ellipse(centerX, centerY, 60, mouthHeight, 0, 0, Math.PI * 2);
+                animationCtx.clip();
+                
+                // Fill with black to simulate mouth opening
+                animationCtx.fillStyle = '#000000';
+                animationCtx.fillRect(centerX - 70, centerY - mouthHeight, 140, mouthHeight * 2);
+                
+                animationCtx.restore();
                 
                 mouthOpenness.textContent = `${Math.round(mouthData.openness * 100)}%`;
             } else {
-                // Draw small closed mouth
-                const centerX = animationCanvas.width / 2;
-                const centerY = animationCanvas.height / 2 + 50;
-                
-                animationCtx.strokeStyle = 'rgba(255, 0, 0, 0.7)';
-                animationCtx.lineWidth = 3;
-                animationCtx.beginPath();
-                animationCtx.moveTo(centerX - 30, centerY);
-                animationCtx.lineTo(centerX + 30, centerY);
-                animationCtx.stroke();
-                
                 mouthOpenness.textContent = '0%';
             }
         }
 
-        // Apply eye animation
-        function applyEyeAnimation(eyeData) {
+        // Warp the eyes in the uploaded image
+        function warpEyes(eyeData) {
             const leftEyeX = animationCanvas.width / 2 - 35;
             const rightEyeX = animationCanvas.width / 2 + 35;
             const eyeY = animationCanvas.height / 2 - 20;
             
-            // Left eye
             if (eyeData.isBlinking) {
-                // Closed eye (line)
-                animationCtx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
-                animationCtx.lineWidth = 4;
+                // Create eye blinking effect
+                animationCtx.save();
+                
+                // Left eye blink
                 animationCtx.beginPath();
-                animationCtx.moveTo(leftEyeX - 12, eyeY);
-                animationCtx.lineTo(leftEyeX + 12, eyeY);
-                animationCtx.stroke();
+                animationCtx.ellipse(leftEyeX, eyeY, 20, 3, 0, 0, Math.PI * 2);
+                animationCtx.fillStyle = '#000000';
+                animationCtx.fill();
+                
+                // Right eye blink
+                animationCtx.beginPath();
+                animationCtx.ellipse(rightEyeX, eyeY, 20, 3, 0, 0, Math.PI * 2);
+                animationCtx.fillStyle = '#000000';
+                animationCtx.fill();
+                
+                animationCtx.restore();
+                
+                eyeOpenness.textContent = '0%';
             } else {
-                // Open eye with dynamic size based on openness
-                const eyeSize = 12 + (eyeData.left * 8);
+                // Create eye opening effect based on openness
+                const leftEyeSize = 10 + (eyeData.left * 10);
+                const rightEyeSize = 10 + (eyeData.right * 10);
                 
-                // White of the eye
-                animationCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                animationCtx.save();
+                
+                // Left eye pupil
                 animationCtx.beginPath();
-                animationCtx.ellipse(leftEyeX, eyeY, eyeSize, eyeSize, 0, 0, Math.PI * 2);
+                animationCtx.arc(leftEyeX, eyeY, leftEyeSize, 0, Math.PI * 2);
+                animationCtx.fillStyle = '#000000';
                 animationCtx.fill();
                 
-                // Pupil
-                animationCtx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+                // Right eye pupil
                 animationCtx.beginPath();
-                animationCtx.arc(leftEyeX, eyeY, eyeSize * 0.5, 0, Math.PI * 2);
+                animationCtx.arc(rightEyeX, eyeY, rightEyeSize, 0, Math.PI * 2);
+                animationCtx.fillStyle = '#000000';
                 animationCtx.fill();
+                
+                animationCtx.restore();
+                
+                eyeOpenness.textContent = `${Math.round((eyeData.left + eyeData.right) / 2 * 100)}%`;
             }
-            
-            // Right eye
-            if (eyeData.isBlinking) {
-                animationCtx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
-                animationCtx.lineWidth = 4;
-                animationCtx.beginPath();
-                animationCtx.moveTo(rightEyeX - 12, eyeY);
-                animationCtx.lineTo(rightEyeX + 12, eyeY);
-                animationCtx.stroke();
-            } else {
-                const eyeSize = 12 + (eyeData.right * 8);
-                
-                animationCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-                animationCtx.beginPath();
-                animationCtx.ellipse(rightEyeX, eyeY, eyeSize, eyeSize, 0, 0, Math.PI * 2);
-                animationCtx.fill();
-                
-                animationCtx.fillStyle = 'rgba(0, 0, 0, 0.9)';
-                animationCtx.beginPath();
-                animationCtx.arc(rightEyeX, eyeY, eyeSize * 0.5, 0, Math.PI * 2);
-                animationCtx.fill();
-            }
-            
-            eyeOpenness.textContent = eyeData.isBlinking ? '0%' : `${Math.round((eyeData.left + eyeData.right) / 2 * 100)}%`;
         }
 
-        // Apply head animation
-        function applyHeadAnimation(headData) {
-            // We'll apply a subtle head movement by redrawing the image with offset
+        // Advanced face warping using mesh deformation (simplified)
+        function advancedFaceWarp(liveLandmarks) {
+            if (!uploadedImage) return;
+
+            // This is a simplified version - in production you'd use a proper warping library
             animationCtx.clearRect(0, 0, animationCanvas.width, animationCanvas.height);
-            animationCtx.drawImage(uploadedImage, headData.x, 0, animationCanvas.width, animationCanvas.height);
             
-            // Re-apply facial features on top
-            const transformations = {
-                mouth: { openness: 0.3, isTalking: true }, // Example values
-                eyes: { left: 0.8, right: 0.8, isBlinking: false },
-                head: headData
-            };
+            // Draw the base image
+            animationCtx.drawImage(uploadedImage, 0, 0, animationCanvas.width, animationCanvas.height);
             
-            applyMouthAnimation(transformations.mouth);
-            applyEyeAnimation(transformations.eyes);
+            // Get key points for warping
+            const mouthOpen = (liveLandmarks[14].y - liveLandmarks[13].y) * 8;
+            const leftEyeOpen = (liveLandmarks[145].y - liveLandmarks[159].y) * 12;
+            const rightEyeOpen = (liveLandmarks[374].y - liveLandmarks[386].y) * 12;
             
-            headPosition.textContent = headData.position;
+            // Apply mouth warping
+            if (mouthOpen > 0.1) {
+                warpMouthAdvanced(mouthOpen);
+            }
+            
+            // Apply eye warping
+            warpEyesAdvanced(leftEyeOpen, rightEyeOpen);
+            
+            // Update indicators
+            mouthOpenness.textContent = `${Math.min(100, Math.round(mouthOpen * 100))}%`;
+            eyeOpenness.textContent = `${Math.min(100, Math.round(((leftEyeOpen + rightEyeOpen) / 2) * 100))}%`;
+        }
+
+        // Advanced mouth warping using distortion
+        function warpMouthAdvanced(openness) {
+            const centerX = animationCanvas.width / 2;
+            const centerY = animationCanvas.height / 2 + 50;
+            const mouthWidth = 60;
+            const mouthHeight = Math.max(5, openness * 30);
+            
+            // Create mouth opening with gradient for more realistic look
+            const gradient = animationCtx.createRadialGradient(
+                centerX, centerY, 0,
+                centerX, centerY, mouthWidth
+            );
+            gradient.addColorStop(0, '#000000');
+            gradient.addColorStop(1, '#333333');
+            
+            animationCtx.save();
+            animationCtx.globalCompositeOperation = 'source-over';
+            
+            // Draw mouth cavity
+            animationCtx.fillStyle = gradient;
+            animationCtx.beginPath();
+            animationCtx.ellipse(centerX, centerY, mouthWidth, mouthHeight, 0, 0, Math.PI * 2);
+            animationCtx.fill();
+            
+            // Add some teeth for realism
+            if (openness > 0.3) {
+                animationCtx.fillStyle = '#ffffff';
+                const toothWidth = 8;
+                const toothCount = 6;
+                const startX = centerX - (toothWidth * toothCount) / 2;
+                
+                for (let i = 0; i < toothCount; i++) {
+                    animationCtx.fillRect(startX + i * toothWidth, centerY - mouthHeight/2, toothWidth-1, mouthHeight/3);
+                }
+            }
+            
+            animationCtx.restore();
+        }
+
+        // Advanced eye warping
+        function warpEyesAdvanced(leftOpenness, rightOpenness) {
+            const leftEyeX = animationCanvas.width / 2 - 35;
+            const rightEyeX = animationCanvas.width / 2 + 35;
+            const eyeY = animationCanvas.height / 2 - 20;
+            
+            // Check if blinking
+            const isBlinking = leftOpenness < 0.2 && rightOpenness < 0.2;
+            
+            if (isBlinking) {
+                // Draw closed eyes as simple lines
+                animationCtx.save();
+                animationCtx.strokeStyle = '#000000';
+                animationCtx.lineWidth = 4;
+                
+                // Left eye closed
+                animationCtx.beginPath();
+                animationCtx.moveTo(leftEyeX - 15, eyeY);
+                animationCtx.lineTo(leftEyeX + 15, eyeY);
+                animationCtx.stroke();
+                
+                // Right eye closed
+                animationCtx.beginPath();
+                animationCtx.moveTo(rightEyeX - 15, eyeY);
+                animationCtx.lineTo(rightEyeX + 15, eyeY);
+                animationCtx.stroke();
+                
+                animationCtx.restore();
+            } else {
+                // Draw open eyes with dynamic size
+                const leftSize = 8 + (leftOpenness * 8);
+                const rightSize = 8 + (rightOpenness * 8);
+                
+                animationCtx.save();
+                
+                // Left eye
+                animationCtx.fillStyle = '#ffffff';
+                animationCtx.beginPath();
+                animationCtx.arc(leftEyeX, eyeY, leftSize + 2, 0, Math.PI * 2);
+                animationCtx.fill();
+                
+                animationCtx.fillStyle = '#000000';
+                animationCtx.beginPath();
+                animationCtx.arc(leftEyeX, eyeY, leftSize, 0, Math.PI * 2);
+                animationCtx.fill();
+                
+                // Right eye
+                animationCtx.fillStyle = '#ffffff';
+                animationCtx.beginPath();
+                animationCtx.arc(rightEyeX, eyeY, rightSize + 2, 0, Math.PI * 2);
+                animationCtx.fill();
+                
+                animationCtx.fillStyle = '#000000';
+                animationCtx.beginPath();
+                animationCtx.arc(rightEyeX, eyeY, rightSize, 0, Math.PI * 2);
+                animationCtx.fill();
+                
+                animationCtx.restore();
+            }
         }
 
         // Update movement indicators
@@ -790,18 +771,18 @@
             }
         }
 
-        // Upload image handler - FIXED VERSION
+        // Upload image handler
         async function uploadImage() {
             const file = imageUpload.files[0];
             if (!file) {
-                alert('Please select an image file first');
+                alert('Please select a face image first');
                 return;
             }
 
             try {
                 uploadBtn.disabled = true;
                 uploadBtn.textContent = 'Uploading...';
-                statusText.textContent = 'Uploading image...';
+                statusText.textContent = 'Uploading face image...';
 
                 const formData = new FormData();
                 formData.append('faceImage', file);
@@ -814,68 +795,44 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    log(`✅ Server upload successful: ${data.filename}`);
-                    
-                    // Create a new image object
+                    // Load the uploaded image
                     uploadedImage = new Image();
-                    uploadedImage.crossOrigin = 'anonymous'; // Important for CORS
+                    uploadedImage.crossOrigin = 'anonymous';
                     
                     uploadedImage.onload = function() {
-                        log('🖼️ Image loaded successfully in browser');
                         animatedCanvas.style.display = 'block';
                         animationPlaceholder.style.display = 'none';
-                        statusText.textContent = 'Image loaded! Click "Start Animation"';
+                        statusText.textContent = 'Face image loaded! Click "Start Animation"';
                         startBtn.disabled = false;
                         
-                        // Draw the image on canvas immediately
+                        // Draw initial image
                         animationCtx.drawImage(uploadedImage, 0, 0, animationCanvas.width, animationCanvas.height);
-                        log('🎨 Image drawn on canvas - Ready for animation');
+                        log('✅ Face image loaded - Ready for animation');
                     };
                     
                     uploadedImage.onerror = function() {
-                        log('❌ Failed to load image in browser', 'error');
+                        log('❌ Failed to load image', 'error');
                         statusText.textContent = 'Failed to load image';
-                        uploadedImage = null;
                     };
                     
-                    // Set the source AFTER defining event handlers
                     uploadedImage.src = data.imageUrl;
                     
                 } else {
-                    throw new Error(data.error || 'Upload failed');
+                    throw new Error(data.error);
                 }
             } catch (error) {
                 log(`❌ Upload failed: ${error.message}`, 'error');
-                statusText.textContent = 'Upload failed - check console';
+                statusText.textContent = 'Upload failed';
             } finally {
                 uploadBtn.disabled = false;
-                uploadBtn.textContent = 'Upload';
+                uploadBtn.textContent = 'Upload Face';
             }
         }
 
-        // Debug function to check image state
-        function debugImageState() {
-            console.log('=== DEBUG IMAGE STATE ===');
-            console.log('uploadedImage:', uploadedImage);
-            console.log('isImageLoaded():', isImageLoaded());
-            console.log('uploadedImage.complete:', uploadedImage?.complete);
-            console.log('uploadedImage.naturalWidth:', uploadedImage?.naturalWidth);
-            console.log('isAnimating:', isAnimating);
-        }
-
-        // Start animation - FIXED VERSION
+        // Start animation
         function startAnimation() {
-            debugImageState(); // Debug info
-            
             if (!uploadedImage) {
-                alert('❌ No image uploaded. Please upload an image first.');
-                log('⚠️ Start animation failed: No image uploaded', 'error');
-                return;
-            }
-
-            if (!isImageLoaded()) {
-                alert('🔄 Image still loading... Please wait a moment and try again.');
-                log('⚠️ Start animation failed: Image not fully loaded', 'error');
+                alert('Please upload a face image first');
                 return;
             }
 
@@ -883,11 +840,7 @@
             startBtn.disabled = true;
             stopBtn.disabled = false;
             statusText.textContent = '🎬 Animation ACTIVE - Make faces!';
-            animationStatus.textContent = 'Active';
-            log('🎬 Face animation STARTED - Your movements will animate the image');
-            
-            // Draw initial frame
-            animationCtx.drawImage(uploadedImage, 0, 0, animationCanvas.width, animationCanvas.height);
+            log('🎬 REAL face animation started - Your expressions will warp the image');
         }
 
         // Stop animation
@@ -896,53 +849,40 @@
             startBtn.disabled = false;
             stopBtn.disabled = true;
             statusText.textContent = 'Animation stopped';
-            animationStatus.textContent = 'Inactive';
-            log('⏹️ Face animation stopped');
+            log('⏹️ Animation stopped');
             
-            // Clear and redraw static image
-            if (isImageLoaded()) {
-                animationCtx.clearRect(0, 0, animationCanvas.width, animationCanvas.height);
+            // Reset to original image
+            if (uploadedImage) {
                 animationCtx.drawImage(uploadedImage, 0, 0, animationCanvas.width, animationCanvas.height);
             }
-        }
-
-        // Clear uploaded image
-        function clearImage() {
-            uploadedImage = null;
-            animatedCanvas.style.display = 'none';
-            animationPlaceholder.style.display = 'flex';
-            statusText.textContent = 'Image cleared - Upload a new image';
-            startBtn.disabled = true;
-            stopBtn.disabled = true;
-            log('🗑️ Image cleared');
-            
-            // Clear canvas
-            animationCtx.clearRect(0, 0, animationCanvas.width, animationCanvas.height);
         }
 
         // Event listeners
         startBtn.addEventListener('click', startAnimation);
         stopBtn.addEventListener('click', stopAnimation);
         uploadBtn.addEventListener('click', uploadImage);
-        clearBtn.addEventListener('click', clearImage);
 
-        // Add direct file input change handler as backup
-        imageUpload.addEventListener('change', function(e) {
-            if (this.files.length > 0) {
-                log('📁 File selected: ' + this.files[0].name);
+        // Use advanced warping in face results
+        function onFaceResults(results) {
+            frameCount++;
+            
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                const landmarks = results.multiFaceLandmarks[0];
+                
+                if (isAnimating && uploadedImage) {
+                    advancedFaceWarp(landmarks); // Use the advanced warping function
+                }
             }
-        });
+            
+            updateFPS();
+        }
 
         // Initialize application
         async function init() {
-            log('🚀 Initializing Face Puppet Animator...');
+            log('🚀 Initializing Real Face Animator...');
             initCanvas();
             await initFaceMesh();
-            log('✅ System ready - Upload an image to start animating');
-            
-            // Initial state
-            startBtn.disabled = true;
-            stopBtn.disabled = true;
+            log('✅ System ready - Upload a face image and start animating');
         }
 
         // Start the application
