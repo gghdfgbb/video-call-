@@ -1,376 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Talking Photo Animator - Real Lip Movement</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      min-height: 100vh;
-      padding: 20px;
-    }
-    .container {
-      max-width: 1300px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .header {
-      text-align: center;
-      padding: 40px 20px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 25px;
-      backdrop-filter: blur(15px);
-      margin-bottom: 30px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    }
-    .header h1 {
-      font-size: 3.5rem;
-      background: linear-gradient(45deg, #ff9a9e, #fad0c4);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 10px;
-    }
-    .header p { font-size: 1.3rem; opacity: 0.9; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Real Human Talking Photo</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color: white;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container { max-width: 1400px; margin: 0 auto; }
+  h1 { text-align: center; font-size: 3rem; margin: 30px 0; background: linear-gradient(45deg, #ff6b6b, #4ecdc4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
 
-    .main-content {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 30px;
-      margin-top: 20px;
-    }
-    @media (max-width: 968px) {
-      .main-content { grid-template-columns: 1fr; }
-    }
+  .card {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 25px;
+    padding: 30px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .upload { text-align: center; padding: 40px; border: 3px dashed #4ecdc4; border-radius: 20px; cursor: pointer; transition: 0.3s; }
+  .upload:hover { background: rgba(78, 205, 196, 0.1); border-color: #fff; }
+  .upload input { display: none; }
 
-    .card {
-      background: rgba(255,255,255,0.1);
-      backdrop-filter: blur(15px);
-      border-radius: 25px;
-      padding: 30px;
-      border: 1px solid rgba(255,255,255,0.2);
-      box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-    }
-    .card h2 {
-      font-size: 1.8rem;
-      color: #a29bfe;
-      margin-bottom: 20px;
-      text-align: center;
-    }
+  .result { position: relative; border-radius: 20px; overflow: hidden; background: #000; }
+  canvas, img { width: 100%; display: block; }
 
-    .upload-area {
-      border: 3px dashed rgba(255,255,255,0.4);
-      border-radius: 20px;
-      padding: 40px;
-      text-align: center;
-      transition: all 0.3s;
-      cursor: pointer;
-    }
-    .upload-area:hover {
-      border-color: #a29bfe;
-      background: rgba(162, 155, 254, 0.1);
-    }
-    .upload-area input { display: none; }
-    .upload-area label {
-      font-size: 1.3rem;
-      cursor: pointer;
-      color: #ddd;
-    }
+  .controls { text-align: center; margin: 25px 0; }
+  button {
+    padding: 15px 35px;
+    margin: 8px;
+    border: none;
+    border-radius: 50px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: 0.3s;
+  }
+  #start { background: #00b894; }
+  #stop { background: #e17055; }
+  #reset { background: #fdcb6e; color: #333; }
+  button:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .image-box {
-      margin-top: 20px;
-      border-radius: 20px;
-      overflow: hidden;
-      background: #000;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    .image-box img, .image-box canvas {
-      width: 100%;
-      height: auto;
-      max-height: 500px;
-      object-fit: contain;
-      display: block;
-    }
-    .placeholder {
-      height: 400px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: #888;
-      font-size: 1.4rem;
-    }
-
-    .controls {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      margin: 25px 0;
-      flex-wrap: wrap;
-    }
-    .btn {
-      padding: 14px 32px;
-      border: none;
-      border-radius: 50px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .btn-start { background: #6c5ce7; }
-    .btn-stop { background: #e17055; }
-    .btn-reset { background: #fdcb6e; color: #333; }
-    .btn:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-
-    .status-bar {
-      text-align: center;
-      padding: 15px;
-      background: rgba(0,0,0,0.3);
-      border-radius: 15px;
-      margin-top: 20px;
-      font-size: 1.1rem;
-    }
-
-    .loading {
-      text-align: center;
-      padding: 30px;
-      display: none;
-    }
-    .spinner {
-      width: 50px; height: 50px;
-      border: 5px solid #333;
-      border-top: 5px solid #a29bfe;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 15px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-  </style>
+  .status { text-align: center; padding: 15px; background: rgba(0,0,0,0.4); border-radius: 15px; font-size: 1.2rem; }
+  .loading { display: none; text-align: center; padding: 40px; }
+  .spinner { width: 60px; height: 60px; border: 6px solid #333; border-top: 6px solid #4ecdc4; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>Talking Photo Animator</h1>
-      <p>Upload any face photo → Watch it talk with real lip movement</p>
+
+<div class="container">
+  <h1>Real Human Talking Photo</h1>
+
+  <div class="grid">
+    <div class="card">
+      <div class="upload" onclick="document.getElementById('file').click()">
+        <input type="file" id="file" accept="image/*">
+        <h3>Click to Upload Face Photo</h3>
+        <p>Best: Front-facing, good lighting</p>
+      </div>
+      <img id="original" style="display:none; margin-top:20px; border-radius:20px;">
+      <div class="status" id="status">Ready</div>
+      <div class="loading" id="loading"><div class="spinner"></div><p>Analyzing face...</p></div>
     </div>
 
-    <div class="main-content">
-      <!-- Upload Section -->
-      <div class="card">
-        <h2>Upload Photo</h2>
-        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-          <input type="file" id="fileInput" accept="image/*" />
-          <label for="fileInput">Click or Drop Image Here</label>
-        </div>
-
-        <div class="image-box">
-          <img id="uploadedImage" style="display:none;" />
-          <div class="placeholder" id="uploadPlaceholder">
-            <div>No image uploaded yet</div>
-          </div>
-        </div>
-
-        <div class="status-bar" id="statusText">Ready to upload</div>
-        <div class="loading" id="loading">
-          <div class="spinner"></div>
-          <p>Detecting face & preparing animation...</p>
-        </div>
+    <div class="card">
+      <h2 style="text-align:center; color:#4ecdc4; margin-bottom:20px;">Live Animation</h2>
+      <div class="result">
+        <canvas id="canvas"></canvas>
       </div>
-
-      <!-- Animation Section -->
-      <div class="card">
-        <h2>Animated Result</h2>
-        <div class="image-box">
-          <canvas id="animatedCanvas"></canvas>
-          <div class="placeholder" id="animPlaceholder">
-            <div>Animation will appear here</div>
-          </div>
-        </div>
-
-        <div class="controls">
-          <button id="startBtn" class="btn btn-start" disabled>Start Talking</button>
-          <button id="stopBtn" class="btn btn-stop" disabled>Stop</button>
-          <button id="resetBtn" class="btn btn-reset">Reset</button>
-        </div>
-
-        <div class="status-bar">
-          Mouth Open: <strong id="mouthOpenness">0%</strong> | 
-          Status: <strong id="animState">Stopped</strong>
-        </div>
+      <div class="controls">
+        <button id="start">Start Talking</button>
+        <button id="stop" disabled>Stop</button>
+        <button id="reset">Reset</button>
+      </div>
+      <div class="status">
+        Mouth: <strong id="open">0%</strong> • State: <strong id="state">Stopped</strong>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- TensorFlow.js + Face Mesh -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.3"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.21.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@0.0.3"></script>
 
-  <script>
-    const canvas = document.getElementById('animatedCanvas');
-    const ctx = canvas.getContext('2d');
-    const uploadedImg = document.getElementById('uploadedImage');
-    const fileInput = document.getElementById('fileInput');
-    const startBtn = document.getElementById('startBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const statusText = document.getElementById('statusText');
-    const loading = document.getElementById('loading');
-    const uploadPlaceholder = document.getElementById('uploadPlaceholder');
-    const animPlaceholder = document.getElementById('animPlaceholder');
+<script>
+// REAL HUMAN MOUTH MOVEMENT — 2025 Professional Method
+let model, img, canvas, ctx, landmarks = null;
+let animating = false;
+let baseMesh = null;
 
-    let model, originalImage = null, landmarks = null;
-    let isAnimating = false;
-    let mouthOpenness = 0;
+canvas = document.getElementById('canvas');
+ctx = canvas.getContext('2d');
 
-    // Key mouth landmarks (MediaPipe FaceMesh)
-    const MOUTH_INNER = [13, 14, 78, 308, 324, 318, 402, 317, 87, 178];
-    const UPPER_LIP = [0, 267, 269, 270, 409, 291, 375, 321, 405, 314];
-    const LOWER_LIP = [17, 84, 181, 91, 146, 61, 185, 39, 40, 37];
+const MOUTH_POINTS = [
+  // Outer lip
+  61, 185, 40, 39, 37, 0, 267, 269, 270, 409,
+  291, 375, 321, 405, 314, 17, 84, 181, 91, 146,
+  // Inner lip (critical!)
+  13, 312, 311, 310, 415, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95, 78
+];
 
-    // Professional Thin-Plate-Spline-like warping
-    function warpMouth(openness) {
-      if (!landmarks || !originalImage) return;
+async function loadAndDetect(file) {
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('status').textContent = 'Uploading...';
 
-      const points = landmarks.scaledMesh;
-      ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const output = ctx.createImageData(canvas.width, canvas.height);
+  const form = new FormData();
+  form.append('faceImage', file);
+  const res = await fetch('/upload-face', { method: 'POST', body: form });
+  const data = await res.json();
+  if (!data.success) throw new Error('Upload failed');
 
-      const centerX = points[1][0];
-      const centerY = points[1][1];
+  img = new Image();
+  img.onload = async () => {
+    // Setup canvas
+    const max = 640;
+    const r = Math.min(max/img.width, max/img.height);
+    canvas.width = img.width * r;
+    canvas.height = img.height * r;
 
-      for (let y = 0; y < canvas.height; y += 1) {
-        for (let x = 0; x < canvas.width; x += 1) {
-          let srcX = x;
-          let srcY = y;
+    document.getElementById('original').src = img.src;
+    document.getElementById('original').style.display = 'block';
 
-          const dist = Math.hypot(x - centerX, y - centerY);
-          if (dist < 140) {
-            let displacementY = 0;
+    model = model || await faceLandmarksDetection.load(
+      faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
+    );
 
-            // Upper lip down slightly
-            if (y < centerY - 10) {
-              displacementY = openness * 18;
-            }
-            // Lower lip down more
-            else if (y > centerY + 10) {
-              displacementY = openness * 45;
-            }
-            // Inner mouth area
-            else {
-              displacementY = openness * 35;
-            }
+    const faces = await model.estimateFaces({ input: img });
+    if (faces.length === 0) throw new Error("No face found!");
 
-            srcY += displacementY * (1 - dist / 140);
-          }
+    landmarks = faces[0].scaledMesh;
+    baseMesh = landmarks.map(p => [...p]); // Save neutral position
 
-          srcX = Math.max(0, Math.min(canvas.width - 1, srcX));
-          srcY = Math.max(0, Math.min(canvas.height - 1, srcY));
+    drawNeutral();
+    document.getElementById('start').disabled = false;
+    document.getElementById('status').textContent = 'Ready! Click Start Talking';
+    document.getElementById('loading').style.display = 'none';
+  };
+  img.src = data.imageUrl;
+}
 
-          const i = (y * canvas.width + x) * 4;
-          const si = (Math.floor(srcY) * canvas.width + Math.floor(srcX)) * 4;
+function drawNeutral() {
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+}
 
-          output.data[i]   = imageData.data[si];
-          output.data[i+1] = imageData.data[si+1];
-          output.data[i+2] = imageData.data[si+2];
-          output.data[i+3] = imageData.data[si+3];
+function animateMouth() {
+  if (!animating || !baseMesh) return;
+
+  drawNeutral();
+  const openness = (Math.sin(Date.now() * 0.008) + 1) / 2; // Natural rhythm
+  document.getElementById('open').textContent = Math.round(openness * 100) + '%';
+
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = canvas.width;
+  tempCanvas.height = canvas.height;
+  const tctx = tempCanvas.getContext('2d');
+  tctx.drawImage(canvas, 0, 0);
+
+  const imageData = tctx.getImageData(0, 0, canvas.width, canvas.height);
+  const output = ctx.createImageData(canvas.width, canvas.height);
+  const data = imageData.data;
+  const out = output.data;
+
+  // Only move actual lip points — this is the magic
+  for (let i = 0; i < MOUTH_POINTS.length; i++) {
+    const idx = MOUTH_POINTS[i];
+    const [x, y] = baseMesh[idx];
+    const scaledX = x * (canvas.width / img.width);
+    const scaledY = y * (canvas.height / img.height);
+
+    let dy = 0;
+    if (i < 20) dy = openness * 15;      // Outer lip slight move
+    else if (i < 30) dy = openness * 35; // Inner upper
+    else dy = openness * 55;             // Inner lower lip — moves most!
+
+    const targetY = scaledY + dy;
+
+    // Sample pixels around this point and push them down
+    const radius = 20;
+    for (let dy2 = -radius; dy2 < radius; dy2++) {
+      for (let dx2 = -radius; dx2 < radius; dx2++) {
+        const px = Math.round(scaledX + dx2);
+        const py = Math.round(scaledY + dy2);
+        const tx = px;
+        const ty = Math.round(targetY + dy2);
+
+        if (px >= 0 && px < canvas.width && py >= 0 && py < canvas.height &&
+            tx >= 0 && tx < canvas.width && ty >= 0 && ty < canvas.height) {
+          const src = (py * canvas.width + px) * 4;
+          const dst = (ty * canvas.width + tx) * 4;
+          out[dst]   = data[src];
+          out[dst+1] = data[src+1];
+          out[dst+2] = data[src+2];
+          out[dst+3] = data[src+3];
         }
       }
-
-      ctx.putImageData(output, 0, 0);
     }
+  }
 
-    function animate() {
-      if (!isAnimating) return;
+  ctx.putImageData(output, 0, 0);
+  requestAnimationFrame(animateMouth);
+}
 
-      const time = performance.now() * 0.003;
-      mouthOpenness = (Math.sin(time * 6) + 1) / 2 * 0.8 + 0.2;
+// Events
+document.getElementById('file').onchange = e => {
+  if (e.target.files[0]) loadAndDetect(e.target.files[0]).catch(err => {
+    alert(err.message);
+    document.getElementById('loading').style.display = 'none';
+  });
+};
 
-      ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
-      warpMouth(mouthOpenness);
+document.getElementById('start').onclick = () => {
+  animating = true;
+  document.getElementById('start').disabled = true;
+  document.getElementById('stop').disabled = false;
+  document.getElementById('state').textContent = 'Talking';
+  animateMouth();
+};
 
-      document.getElementById('mouthOpenness').textContent = Math.round(mouthOpenness * 100) + '%';
-      requestAnimationFrame(animate);
-    }
+document.getElementById('stop').onclick = () => {
+  animating = false;
+  document.getElementById('start').disabled = false;
+  document.getElementById('stop').disabled = true;
+  document.getElementById('state').textContent = 'Stopped';
+  drawNeutral();
+};
 
-    async function processImage(file) {
-      loading.style.display = 'block';
-      statusText.textContent = 'Uploading & detecting face...';
-
-      const formData = new FormData();
-      formData.append('faceImage', file);
-
-      const res = await fetch('/upload-face', { method: 'POST', body: formData });
-      const data = await res.json();
-
-      if (!data.success) throw new Error('Upload failed');
-
-      const img = new Image();
-      img.onload = async () => {
-        // Resize canvas
-        const maxSize = 600;
-        const ratio = Math.min(maxSize / img.width, maxSize / img.height);
-        canvas.width = img.width * ratio;
-        canvas.height = img.height * ratio;
-
-        uploadedImg.src = img.src;
-        uploadedImg.style.display = 'block';
-        uploadPlaceholder.style.display = 'none';
-        animPlaceholder.style.display = 'none';
-        canvas.style.display = 'block';
-        originalImage = img;
-
-        // Load model & detect face
-        model = model || await faceLandmarksDetection.load(
-          faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
-        );
-
-        const faces = await model.estimateFaces({ input: img });
-        if (faces.length === 0) throw new Error('No face detected!');
-
-        landmarks = faces[0];
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        startBtn.disabled = false;
-        statusText.textContent = 'Ready! Click "Start Talking"';
-        loading.style.display = 'none';
-      };
-      img.src = data.imageUrl;
-    }
-
-    // Event Listeners
-    fileInput.onchange = () => {
-      if (fileInput.files[0]) processImage(fileInput.files[0]).catch(e => {
-        alert(e.message);
-        loading.style.display = 'none';
-      });
-    };
-
-    startBtn.onclick = () => {
-      isAnimating = true;
-      startBtn.disabled = true;
-      stopBtn.disabled = false;
-      document.getElementById('animState').textContent = 'Talking';
-      animate();
-    };
-
-    stopBtn.onclick = () => {
-      isAnimating = false;
-      startBtn.disabled = false;
-      stopBtn.disabled = true;
-      document.getElementById('animState').textContent = 'Stopped';
-      if (originalImage) ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
-    };
-
-    resetBtn.onclick = () => {
-      stopBtn.click();
-      document.getElementById('mouthOpenness').textContent = '0%';
-    };
-  </script>
+document.getElementById('reset').onclick = () => {
+  document.getElementById('stop').click();
+  document.getElementById('open').textContent = '0%';
+};
+</script>
 </body>
 </html>
